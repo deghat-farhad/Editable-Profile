@@ -1,4 +1,17 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
+ext{
+    dagger_version = '2.23.2'
+    retrofit_version = '2.4.0'
+    okHttp_version = '3.11.0'
+    moshi_version = '1.6.0'
+    moshi_adapter_version = '1.7.0'
+    rxkotlin_version = '2.3.0'
+    junit_version = '4.12'
+    mokito_version = '2.27.0'
+}
 
 android {
     compileSdkVersion 28
@@ -28,9 +41,34 @@ dependencies {
     implementation project(path: ':Domain')
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     implementation 'androidx.appcompat:appcompat:1.0.2'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    // dagger
+    implementation "com.google.dagger:dagger:$dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger_version"
+
+    //retrofit
+    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
+    implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
+
+    //okhttp3
+    implementation "com.squareup.okhttp3:okhttp:$okHttp_version"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okHttp_version"
+
+    //moshi
+    implementation "com.squareup.moshi:moshi-kotlin:$moshi_version"
+    implementation "com.squareup.moshi:moshi-adapters:$moshi_adapter_version"
+
+    //rxkotlin
+    implementation "io.reactivex.rxjava2:rxkotlin:$rxkotlin_version"
+
+    //test
+    testImplementation "junit:junit:$junit_version"
+    testImplementation "org.mockito:mockito-core:$mokito_version"
 }

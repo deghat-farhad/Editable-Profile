@@ -3,7 +3,7 @@ package com.farhad.sparkeditableprofile.domain.model
 import java.util.*
 import kotlin.collections.HashMap
 data class Profile (
-    val id: String?,
+    val id: String,
     val displayName: String? = null,
     val realName: String? = null,
     val profilePicture: String? = null,
