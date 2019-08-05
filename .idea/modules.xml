@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Data/Data.iml" filepath="$PROJECT_DIR$/Data/Data.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Domain/Domain.iml" filepath="$PROJECT_DIR$/Domain/Domain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Presentation/Presentation.iml" filepath="$PROJECT_DIR$/Presentation/Presentation.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SparkEditableProfile.iml" filepath="$PROJECT_DIR$/SparkEditableProfile.iml" />
+    </modules>
+  </component>
+</project>
