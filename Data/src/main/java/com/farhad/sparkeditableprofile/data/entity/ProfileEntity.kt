@@ -6,7 +6,7 @@ data class ProfileEntity (
     var id: String,
     var Display_Name: String? = null,
     var Real_Name: String? = null,
-    var Profile_Picture: String? = null,
+    var Profile_Picture: ProfilePictureEntity? = null,
     var Birthday: Date? = null,
     var Height: Int? = null,
     var Occupation: String? = null,

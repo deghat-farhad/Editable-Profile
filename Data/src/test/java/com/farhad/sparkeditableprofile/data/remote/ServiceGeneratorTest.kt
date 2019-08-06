@@ -1,6 +1,6 @@
 package com.farhad.sparkeditableprofile.data.remote
 
-import com.farhad.sparkeditableprofile.data.remote.Services.ProfileService
+import com.farhad.sparkeditableprofile.data.remote.services.ProfileService
 import org.junit.Test
 
 import org.junit.Assert.*

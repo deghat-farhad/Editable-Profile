@@ -1,10 +1,7 @@
 package com.farhad.sparkeditableprofile.data.di
 
+import com.farhad.sparkeditableprofile.data.mapper.*
 import com.farhad.sparkeditableprofile.data.repository.ProfileRepositoryImpl
-import com.farhad.sparkeditableprofile.data.mapper.LocationEntityMapper
-import com.farhad.sparkeditableprofile.data.mapper.ProfileEntityMapper
-import com.farhad.sparkeditableprofile.data.mapper.RequestStatusEntityMapper
-import com.farhad.sparkeditableprofile.data.mapper.SingleChoiceAnswerEntityMapper
 import com.farhad.sparkeditableprofile.data.remote.Remote
 import com.farhad.sparkeditableprofile.data.remote.ServiceGenerator
 import com.squareup.moshi.Moshi
@@ -28,17 +25,24 @@ class RepositoriesModule {
     fun userRepositoryImpl(
         remote: Remote,
         profileEntityMapper: ProfileEntityMapper,
-        requestStatusEntityMapper: RequestStatusEntityMapper
+        requestStatusEntityMapper: RequestStatusEntityMapper,
+        profilePictureMapper: ProfilePictureEntityMapper
     ): ProfileRepositoryImpl {
-        return ProfileRepositoryImpl(remote,requestStatusEntityMapper, profileEntityMapper)
+        return ProfileRepositoryImpl(remote,requestStatusEntityMapper, profileEntityMapper, profilePictureMapper)
+    }
+
+    @Provides
+    fun profilePictureMapper(): ProfilePictureEntityMapper{
+        return ProfilePictureEntityMapper()
     }
 
     @Provides
     fun profileEntityMapper(
         locationEntityMapper: LocationEntityMapper,
-        singleChoiceAnswerEntityMapper: SingleChoiceAnswerEntityMapper
+        singleChoiceAnswerEntityMapper: SingleChoiceAnswerEntityMapper,
+        profilePictureMapper: ProfilePictureEntityMapper
     ): ProfileEntityMapper{
-        return ProfileEntityMapper(locationEntityMapper, singleChoiceAnswerEntityMapper)
+        return ProfileEntityMapper(locationEntityMapper, singleChoiceAnswerEntityMapper, profilePictureMapper)
     }
 
     @Provides
