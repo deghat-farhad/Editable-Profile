@@ -1,7 +1,7 @@
 package com.farhad.sparkeditableprofile.domain.usecase.registerProfile
 
 import com.farhad.sparkeditableprofile.domain.model.RequestStatus
-import com.farhad.sparkeditableprofile.domain.usecase.repository.ProfileRepository
+import com.farhad.sparkeditableprofile.domain.repository.ProfileRepository
 import com.farhad.sparkeditableprofile.domain.usecase.base.UseCase
 import io.reactivex.Observable
 import io.reactivex.Scheduler

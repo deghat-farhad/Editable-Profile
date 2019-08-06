@@ -1,4 +1,4 @@
-package com.farhad.sparkeditableprofile.domain.usecase.repository
+package com.farhad.sparkeditableprofile.domain.repository
 
 import com.farhad.sparkeditableprofile.domain.model.Profile
 import com.farhad.sparkeditableprofile.domain.model.ProfilePicture
@@ -8,5 +8,5 @@ import java.io.File
 
 interface ProfileRepository {
     fun registerProfile(profile: Profile): Observable<RequestStatus>
-    fun uploadProfilePicture(picture: File): Observable<ProfilePicture>
+    fun uploadProfilePicture(picture: File, profile: Profile): Observable<ProfilePicture>
 }

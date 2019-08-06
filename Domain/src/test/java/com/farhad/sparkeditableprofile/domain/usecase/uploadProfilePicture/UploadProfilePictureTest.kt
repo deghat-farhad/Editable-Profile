@@ -1,13 +1,13 @@
 package com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture
 
+import com.farhad.sparkeditableprofile.domain.model.Profile
 import com.farhad.sparkeditableprofile.domain.model.ProfilePicture
-import com.farhad.sparkeditableprofile.domain.usecase.repository.ProfileRepository
+import com.farhad.sparkeditableprofile.domain.repository.ProfileRepository
 import io.reactivex.Observable
 import io.reactivex.Scheduler
 import net.bytebuddy.utility.RandomString
 import org.junit.Test
 
-import org.junit.Assert.*
 import org.junit.Before
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -26,11 +26,12 @@ class UploadProfilePictureTest {
 
     @Test
     fun buildUseCaseObservable() {
-        val profilePictureParams = UploadProfilePictureParams(picture)
+        val profile = Profile(id = RandomString.make(), answers = hashMapOf())
+        val profilePictureParams = UploadProfilePictureParams(picture, profile)
         val profilePicture = ProfilePicture(RandomString.make())
         val uploadProfilePicture = UploadProfilePicture(scheduler, scheduler, profileRepository)
 
-        Mockito.`when`(profileRepository.uploadProfilePicture(any())).thenReturn(Observable.just(profilePicture))
+        Mockito.`when`(profileRepository.uploadProfilePicture(any(), any())).thenReturn(Observable.just(profilePicture))
 
         val updateProfileObservable = uploadProfilePicture.buildUseCaseObservable(profilePictureParams)
 
