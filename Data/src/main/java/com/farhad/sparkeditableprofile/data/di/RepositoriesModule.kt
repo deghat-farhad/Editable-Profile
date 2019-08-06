@@ -33,7 +33,7 @@ class RepositoriesModule {
         return ProfileRepositoryImpl(remote,requestStatusEntityMapper, profileEntityMapper)
     }
 
-o    @Provides
+    @Provides
     fun profileEntityMapper(
         locationEntityMapper: LocationEntityMapper,
         singleChoiceAnswerEntityMapper: SingleChoiceAnswerEntityMapper
