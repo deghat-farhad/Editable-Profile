@@ -19,4 +19,6 @@ class Remote(private val serviceGenerator: ServiceGenerator) {
         )
         return serviceGenerator.profileService().uploadProfilePicture(fileToUpload)
     }
+
+    fun getLocations() = serviceGenerator.questionService().getLocations()
 }
