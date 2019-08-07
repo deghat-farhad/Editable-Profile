@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">SparkEditableProfile</string>
+    <string name="required">*Required</string>
+    <string name="btnSignUp">Sign Up</string>
+    <string name="hintDisplayName">Display name*</string>
+    <string name="hintAboutMe">AboutMe</string>
+    <string name="hintBirthday">Birthday*</string>
+    <string name="hintLocation">Location*</string>
+    <string name="hintRealName">Real name*(Private Information)</string>
+    <string name="hintHeight">Height*</string>
+    <string name="hintOccupation">Occupation(Private Information)</string>
 </resources>

@@ -1,11 +1,44 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">@color/colorBackground</item>
+        <!-- Custom fonts -->
+        <item name="fontFamily">@font/rubik_medium</item>
+    </style>
+
+    <!-- Button theme. -->
+    <style name="ButtonTheme">
+        <item name="android:textSize">@dimen/buttonTextViewSize</item>
+        <item name="fontFamily">@font/rubik_light</item>
+        <item name="android:paddingRight">@dimen/buttonHorizontalPadding</item>
+        <item name="android:paddingLeft">@dimen/buttonHorizontalPadding</item>
+        <item name="android:paddingTop">@dimen/buttonVerticalPadding</item>
+        <item name="android:paddingBottom">@dimen/buttonVerticalPadding</item>
+        <item name="android:textColor">@color/colorPink</item>
+    </style>
+
+    <!-- TextInput theme. -->
+    <style name="TextInputLayoutTheme" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="hintTextColor">@color/colorPrimary</item>
+        <item name="boxStrokeColor">@color/colorPrimary</item>
+        <item name="android:textColorHint">@color/colorLightGray</item>
+        <item name="counterTextColor">@color/colorLightGray</item>
+        <item name="endIconTint">@color/colorLightGray</item>
+    </style>
+
+    <style name="TextInputEditTextTheme">
+        <item name="android:textColor">@color/colorPrimary</item>
+    </style>
+
+    <!-- AutoComplete theme. -->
+    <style name="AutoCompleteTextViewTheme">
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:padding">@dimen/autoCompleteTextViewPadding</item>
     </style>
 
 </resources>

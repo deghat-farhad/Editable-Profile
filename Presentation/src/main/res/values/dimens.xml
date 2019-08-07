@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="buttonTextViewSize">12dp</dimen>
+    <dimen name="buttonHorizontalPadding">25dp</dimen>
+    <dimen name="buttonVerticalPadding">5dp</dimen>
+    <dimen name="autoCompleteTextViewPadding">15dp</dimen>
+</resources>
