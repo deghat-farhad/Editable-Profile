@@ -1,11 +1,9 @@
 package com.farhad.sparkeditableprofile.data.remote
 
-import com.farhad.sparkeditableprofile.data.entity.LocationEntity
-import com.farhad.sparkeditableprofile.data.entity.ProfileEntity
-import com.farhad.sparkeditableprofile.data.entity.ProfilePictureEntity
-import com.farhad.sparkeditableprofile.data.entity.RequestStatusEntity
+import com.farhad.sparkeditableprofile.data.entity.*
 import com.farhad.sparkeditableprofile.data.remote.services.ProfileService
 import com.farhad.sparkeditableprofile.data.remote.services.QuestionService
+import com.farhad.sparkeditableprofile.domain.model.SingleChoiceAnswer
 import io.reactivex.Observable
 import junit.framework.Assert.assertEquals
 import net.bytebuddy.utility.RandomString
@@ -88,6 +86,40 @@ class RemoteTest {
         observableLocationEntityList.test().assertValue {
             it == locationEntityList
         }.onComplete()
+    }
+
+    @Test
+    fun getSingleChoiceAnswers(){
+        val singleChoiceAnswerEntityMap
+                = generateFakeSingleChoiceAnswerEntityMap(10, 10)
+        Mockito.`when`(serviceGenerator.questionService()).thenReturn(questionService)
+        Mockito.`when`(questionService.getSingleChoiceAnswers())
+            .thenReturn(Observable.just(singleChoiceAnswerEntityMap))
+
+        val remote = Remote(serviceGenerator)
+
+        val observableSingleChoiceAnswerEntityMap
+                = remote.getSingleChoiceAnswers()
+        observableSingleChoiceAnswerEntityMap.test().assertValue {
+            it == singleChoiceAnswerEntityMap
+        }.onComplete()
+    }
+
+    private fun generateFakeSingleChoiceAnswerEntityMap(questionCnt: Int, answerCnt: Int): HashMap<String, List<SingleChoiceAnswerEntity>>{
+        val output = HashMap<String, List<SingleChoiceAnswerEntity>>()
+
+        for (questionCntr in (1 .. questionCnt)){
+            val question = RandomString.make()
+            val answerList = mutableListOf<SingleChoiceAnswerEntity>()
+            for (answerCntr in (1 .. answerCnt)){
+                answerList.add(
+                    SingleChoiceAnswerEntity(RandomString.make(), RandomString.make())
+                )
+            }
+            output[question] = answerList
+        }
+
+        return output
     }
 
     private fun generateFakeLocationList(count: Int): List<LocationEntity> {

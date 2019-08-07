@@ -17,4 +17,20 @@ class SingleChoiceAnswerEntityMapper {
         }
         return outPut
     }
+
+    fun mapToDomain(singleChoiceAnswerEntity: SingleChoiceAnswerEntity) =
+        SingleChoiceAnswer(singleChoiceAnswerEntity.id, singleChoiceAnswerEntity.name)
+
+    fun mapListToDomain(singleChoiceAnswersListMap: Map<String, List<SingleChoiceAnswerEntity>>): HashMap<String, List<SingleChoiceAnswer>> {
+        val outPut = HashMap<String, List<SingleChoiceAnswer>>()
+
+        for (key in singleChoiceAnswersListMap.keys) {
+            val singleChoiceAnswerEntityList = singleChoiceAnswersListMap[key]
+            singleChoiceAnswerEntityList?.let { singleChoiceAnswerEntities ->
+                val singleChoiceAnswerList = singleChoiceAnswerEntities.map { mapToDomain(it) }
+                outPut[key] = singleChoiceAnswerList
+            }
+        }
+        return outPut
+    }
 }
