@@ -9,4 +9,6 @@
     <string name="hintRealName">Real name*(Private Information)</string>
     <string name="hintHeight">Height*</string>
     <string name="hintOccupation">Occupation(Private Information)</string>
+    <string name="btnOK">Ok</string>
+    <string name="btnCancel">Cancel</string>
 </resources>
