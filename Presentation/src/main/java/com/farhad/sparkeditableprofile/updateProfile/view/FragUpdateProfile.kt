@@ -7,31 +7,33 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.farhad.sparkeditableprofile.R
 import com.farhad.sparkeditableprofile.di.DaggerViewModelComponent
 import com.farhad.sparkeditableprofile.di.ViewModelFactory
-import com.farhad.sparkeditableprofile.updateProfile.model.SingleChoiceAnswerItem
+import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
 import com.farhad.sparkeditableprofile.updateProfile.viewModel.UpdateProfileViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import javax.inject.Inject
 
-class FragUpdateProfile: Fragment(){
+class FragUpdateProfile: Fragment() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
     private lateinit var viewModel: UpdateProfileViewModel
 
     private lateinit var singleChoiceItemsContainer: LinearLayout
-    var singleChoiceTextInputs = HashMap<String, TextInputEditText>()
+    private var singleChoiceTextInputs = HashMap<String, TextInputEditText>()
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(
             R.layout.frag_update_profile,
-            container, false)
+            container, false
+        )
 
         singleChoiceItemsContainer = view.findViewById(R.id.singleChoiceItemsContainer)
 
@@ -41,13 +43,15 @@ class FragUpdateProfile: Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        injectThisToDagger()
         initViews(view)
+        if(!::viewModelFactory.isInitialized){
+            injectThisToDagger()
+        }
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(UpdateProfileViewModel::class.java)
         setObservers()
     }
 
-    private fun injectThisToDagger(){
+    private fun injectThisToDagger() {
         DaggerViewModelComponent
             .builder()
             .build()
@@ -59,14 +63,15 @@ class FragUpdateProfile: Fragment(){
     }
 
     private fun setObservers() {
-
+        viewModel.questionSingleChoices.observe(this, Observer { addSingleChoiceQuestions(it) })
     }
 
-    fun addSingleChoiceQuestions(questionsMap: HashMap<String, List<SingleChoiceAnswerItem>>){
+    private fun addSingleChoiceQuestions(questionsMap: HashMap<String, List<SingleChoiceAnswerItem>>) {
+        singleChoiceItemsContainer.removeAllViews()
         context?.let { context ->
             val layoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
-            for(questionsKey in questionsMap.keys){
+            for (questionsKey in questionsMap.keys) {
                 val view = layoutInflater.inflate(R.layout.single_choice_layout, null)
                 val txtInputLayout = view.findViewById<TextInputLayout>(R.id.txtInputLayoutSingleSelection)
                 val txtViewInput = view.findViewById<TextInputEditText>(R.id.txtInputEdtTxtSingleSelection)
@@ -77,9 +82,9 @@ class FragUpdateProfile: Fragment(){
                 singleChoiceItemsContainer.addView(view)
 
                 txtViewInput.setOnClickListener {
-                    questionsMap[questionsKey]?.let{ answers ->
+                    questionsMap[questionsKey]?.let { answers ->
                         val answersStringList = answers.map { it.name }
-                        val index = if(txtViewInput.text == null)
+                        val index = if (txtViewInput.text == null)
                             -1
                         else
                             answersStringList.indexOf(txtViewInput.text.toString())

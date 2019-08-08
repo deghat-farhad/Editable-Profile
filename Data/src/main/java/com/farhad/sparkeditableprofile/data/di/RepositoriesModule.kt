@@ -4,6 +4,7 @@ import com.farhad.sparkeditableprofile.data.mapper.*
 import com.farhad.sparkeditableprofile.data.repository.ProfileRepositoryImpl
 import com.farhad.sparkeditableprofile.data.remote.Remote
 import com.farhad.sparkeditableprofile.data.remote.ServiceGenerator
+import com.farhad.sparkeditableprofile.data.repository.QuestionRepositoryImpl
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Rfc3339DateJsonAdapter
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -20,6 +21,15 @@ import javax.inject.Named
 
 @Module
 class RepositoriesModule {
+
+    @Provides
+    fun questionRepositoryImpl(
+        remote: Remote,
+        locationEntityMapper: LocationEntityMapper,
+        singleChoiceAnswerEntityMapper: SingleChoiceAnswerEntityMapper
+    ): QuestionRepositoryImpl{
+        return QuestionRepositoryImpl(remote, locationEntityMapper, singleChoiceAnswerEntityMapper)
+    }
 
     @Provides
     fun userRepositoryImpl(

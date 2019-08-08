@@ -1,4 +1,4 @@
-package com.farhad.sparkeditableprofile.updateProfile.model
+package com.farhad.sparkeditableprofile.model
 
 data class SingleChoiceAnswerItem(
     val id: String? = null,
