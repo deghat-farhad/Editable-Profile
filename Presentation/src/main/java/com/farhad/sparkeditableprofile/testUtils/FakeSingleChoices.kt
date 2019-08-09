@@ -13,11 +13,11 @@ class FakeSingleChoices {
         val output = HashMap<String, List<SingleChoiceAnswerItem>>()
 
         for (questionCntr in (1..questionCnt)) {
-            val question = randomString()
+            val question = RandomString().get()
             val answerList = mutableListOf<SingleChoiceAnswerItem>()
             for (answerCntr in (1..answerCnt)) {
                 answerList.add(
-                    SingleChoiceAnswerItem(randomString(), randomString())
+                    SingleChoiceAnswerItem(RandomString().get(), RandomString().get())
                 )
             }
             output[question] = answerList
@@ -30,25 +30,16 @@ class FakeSingleChoices {
         val output = HashMap<String, List<SingleChoiceAnswer>>()
 
         for (questionCntr in (1 .. questionCnt)){
-            val question = randomString()
+            val question = RandomString().get()
             val answerList = mutableListOf<SingleChoiceAnswer>()
             for (answerCntr in (1 .. answerCnt)){
                 answerList.add(
-                    SingleChoiceAnswer(randomString(), randomString())
+                    SingleChoiceAnswer(RandomString().get(), RandomString().get())
                 )
             }
             output[question] = answerList
         }
 
         return output
-    }
-
-    private fun randomString(): String {
-        val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-        val length = Random.nextInt(1, 30)
-        return (1..length)
-            .map { Random.nextInt(0, charPool.size) }
-            .map(charPool::get)
-            .joinToString("")
     }
 }
