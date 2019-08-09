@@ -1,5 +1,6 @@
 package com.farhad.sparkeditableprofile.testUtils
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.FrameLayout

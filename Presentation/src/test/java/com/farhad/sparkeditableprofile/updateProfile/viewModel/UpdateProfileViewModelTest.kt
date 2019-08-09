@@ -1,5 +1,6 @@
 package com.farhad.sparkeditableprofile.updateProfile.viewModel
 
+import android.graphics.Bitmap
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.farhad.sparkeditableprofile.domain.model.Location
 import com.farhad.sparkeditableprofile.domain.model.SingleChoiceAnswer
@@ -16,9 +17,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
 import kotlin.random.Random
 import kotlin.random.nextInt
+
+
+
+
 
 
 class UpdateProfileViewModelTest {
@@ -124,6 +130,22 @@ class UpdateProfileViewModelTest {
         updateProfileViewModel.setNewBirthday(year, month, day)
 
         assertEquals(updateProfileViewModel.birthday.value, "$day ${monthsName[month]} $year")
+    }
+
+    @Test
+    fun setProfilePictureTest(){
+        val bmp = mock(Bitmap::class.java)
+
+        val updateProfileViewModel = UpdateProfileViewModel(
+            singleChoiceAnswerItemMapper,
+            locationItemMapper,
+            getSingleChoiceAnswers,
+            getLocations
+        )
+
+        updateProfileViewModel.setProfilePicture(bmp)
+
+        assertEquals(updateProfileViewModel.profilePicture.value, bmp)
     }
 
     private fun <T> any(): T {

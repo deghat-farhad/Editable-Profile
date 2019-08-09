@@ -1,5 +1,6 @@
 package com.farhad.sparkeditableprofile.updateProfile.viewModel
 
+import android.graphics.Bitmap
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.farhad.sparkeditableprofile.domain.model.Location
@@ -28,6 +29,7 @@ open class UpdateProfileViewModel @Inject constructor(
     open val questionSingleChoices = MutableLiveData<HashMap<String, List<SingleChoiceAnswerItem>>>()
     open val questionLocationsStrings: MutableLiveData<List<String?>> by lazy { MutableLiveData<List<String?>>() }
     open val birthday: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+    open val profilePicture: MutableLiveData<Bitmap> by lazy { MutableLiveData<Bitmap>() }
 
 
 
@@ -69,5 +71,9 @@ open class UpdateProfileViewModel @Inject constructor(
     private fun formatDate(date: Date?): String {
         val formatter = SimpleDateFormat("d MMM yyyy", Locale.US)
         return formatter.format(date)
+    }
+
+    open fun setProfilePicture(profilePicture: Bitmap) {
+        this.profilePicture.value = profilePicture
     }
 }
