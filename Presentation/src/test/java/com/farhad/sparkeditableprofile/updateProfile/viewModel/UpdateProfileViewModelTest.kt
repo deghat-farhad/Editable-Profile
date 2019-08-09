@@ -17,6 +17,8 @@ import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 
 class UpdateProfileViewModelTest {
@@ -103,6 +105,25 @@ class UpdateProfileViewModelTest {
         )
 
         assertEquals(locationItems.map { it.city }, updateProfileViewModel.questionLocationsStrings.value)
+    }
+
+    @Test
+    fun setNewBirthdayTest() {
+        val monthsName = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+        val year = Random.nextInt(1900..2100)
+        val month = Random.nextInt(0..11)
+        val day = Random.nextInt(1..30)
+
+        val updateProfileViewModel = UpdateProfileViewModel(
+            singleChoiceAnswerItemMapper,
+            locationItemMapper,
+            getSingleChoiceAnswers,
+            getLocations
+        )
+
+        updateProfileViewModel.setNewBirthday(year, month, day)
+
+        assertEquals(updateProfileViewModel.birthday.value, "$day ${monthsName[month]} $year")
     }
 
     private fun <T> any(): T {

@@ -11,6 +11,8 @@ import com.farhad.sparkeditableprofile.mapper.LocationItemMapper
 import com.farhad.sparkeditableprofile.mapper.SingleChoiceAnswerItemMapper
 import com.farhad.sparkeditableprofile.model.LocationItem
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 open class UpdateProfileViewModel @Inject constructor(
@@ -20,9 +22,13 @@ open class UpdateProfileViewModel @Inject constructor(
     private val getLocations: GetLocations
 ): ViewModel() {
     private lateinit var questionLocations: List<LocationItem>
+    private var newBirthDay: Date? = null
+
 
     open val questionSingleChoices = MutableLiveData<HashMap<String, List<SingleChoiceAnswerItem>>>()
     open val questionLocationsStrings: MutableLiveData<List<String?>> by lazy { MutableLiveData<List<String?>>() }
+    open val birthday: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+
 
 
 
@@ -53,4 +59,15 @@ open class UpdateProfileViewModel @Inject constructor(
         getLocations.execute(getLocationsObserver, Unit)
     }
 
+    open fun setNewBirthday(year: Int, monthOfYear: Int, dayOfMonth: Int) {
+        val calendar = Calendar.getInstance()
+        calendar.set(year, monthOfYear, dayOfMonth)
+        newBirthDay = calendar.time
+        birthday.value = formatDate(calendar.time)
+    }
+
+    private fun formatDate(date: Date?): String {
+        val formatter = SimpleDateFormat("d MMM yyyy", Locale.US)
+        return formatter.format(date)
+    }
 }

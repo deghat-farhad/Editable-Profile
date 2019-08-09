@@ -1,10 +1,12 @@
 package com.farhad.sparkeditableprofile.updateProfile.view
 
 
+import android.widget.DatePicker
 import androidx.lifecycle.MutableLiveData
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.contrib.PickerActions
 import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -15,13 +17,15 @@ import com.farhad.sparkeditableprofile.di.ViewModelFactory
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
 import com.farhad.sparkeditableprofile.testUtils.ActFragTest
 import com.farhad.sparkeditableprofile.testUtils.FakeSingleChoices
+import com.farhad.sparkeditableprofile.testUtils.RandomString
 import com.farhad.sparkeditableprofile.updateProfile.viewModel.UpdateProfileViewModel
-import org.hamcrest.Matchers.`is`
-import org.hamcrest.Matchers.not
+import junit.framework.Assert.assertEquals
+import org.hamcrest.Matchers.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
@@ -38,6 +42,7 @@ class FragUpdateProfileTest {
     private var fragment = FragUpdateProfile()
     private val liveSingleChoiceAnswersMap = MutableLiveData<HashMap<String, List<SingleChoiceAnswerItem>>>()
     private val liveLocationList = MutableLiveData<List<String?>>()
+    private val liveBirthday = MutableLiveData<String>()
 
 
     @Mock
@@ -57,6 +62,7 @@ class FragUpdateProfileTest {
 
         Mockito.`when`(updateProfileViewModel.questionSingleChoices).thenReturn(liveSingleChoiceAnswersMap)
         Mockito.`when`(updateProfileViewModel.questionLocationsStrings).thenReturn(liveLocationList)
+        Mockito.`when`(updateProfileViewModel.birthday).thenReturn(liveBirthday)
     }
 
     @Test
@@ -91,8 +97,8 @@ class FragUpdateProfileTest {
     }
 
     @Test
-    fun addLocationsToAutoCompleteEditTextTest(){
-        val locationList = (1..100).map { FakeSingleChoices().randomString() }
+    fun addLocationsToAutoCompleteEditTextTest() {
+        val locationList = (1..100).map { RandomString().get() }
         runOnUiThread {
             liveLocationList.value = locationList
         }
@@ -100,12 +106,36 @@ class FragUpdateProfileTest {
         val selectedLocationText = locationList[selectedIndex]
 
         onView(withId(R.id.autoCompleteTxtViewLocation))
-            .perform(typeText(selectedLocationText.substring(0,selectedLocationText.length / 2)))
+            .perform(typeText(selectedLocationText.substring(0, selectedLocationText.length / 2)))
         onView(withText(selectedLocationText))
             .inRoot(withDecorView(not(`is`(testActivityRule.activity.window.decorView))))
             .check(matches(isDisplayed()))
             .perform(click())
 
         onView(withId(R.id.autoCompleteTxtViewLocation)).check(matches(withText(selectedLocationText)))
+    }
+
+    @Test
+    fun displayDatePickerTest() {
+        val year = Random.nextInt(1900..2100)
+        val month = Random.nextInt(1..12)
+        val day = Random.nextInt(1..30)
+
+        Mockito.spy(updateProfileViewModel)
+
+        onView(withId(R.id.txtInputEdtTxtBirthday)).perform(click())
+        onView(withClassName(equalTo(DatePicker::class.java.name))).perform(PickerActions.setDate(year, month, day))
+        onView(withText("OK")).perform(click())
+        Mockito.verify(updateProfileViewModel).setNewBirthday(year, month - 1, day)
+    }
+
+    @Test
+    fun setBirthdayEditTextsTextTest(){
+        val birthday = RandomString().get()
+        runOnUiThread {
+            liveBirthday.value = birthday
+        }
+
+        onView(withId(R.id.txtInputEdtTxtBirthday)).check(matches(withText(birthday)))
     }
 }

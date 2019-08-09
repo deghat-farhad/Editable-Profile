@@ -1,5 +1,6 @@
 package com.farhad.sparkeditableprofile.updateProfile.view
 
+import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -19,7 +20,9 @@ import com.farhad.sparkeditableprofile.updateProfile.viewModel.UpdateProfileView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import java.util.*
 import javax.inject.Inject
+import kotlin.collections.HashMap
 
 class FragUpdateProfile: Fragment() {
 
@@ -30,6 +33,7 @@ class FragUpdateProfile: Fragment() {
     private lateinit var singleChoiceItemsContainer: LinearLayout
     private var singleChoiceTextInputs = HashMap<String, TextInputEditText>()
     private lateinit var autoCompleteTxtViewLocation: AutoCompleteTextView
+    private lateinit var txtInputEdtTxtBirthday: TextInputEditText
 
 
 
@@ -66,6 +70,8 @@ class FragUpdateProfile: Fragment() {
         singleChoiceItemsContainer = fragContainer.findViewById(R.id.singleChoiceItemsContainer)
         autoCompleteTxtViewLocation =
             fragContainer.findViewById(R.id.autoCompleteTxtViewLocation) as AutoCompleteTextView
+        txtInputEdtTxtBirthday = fragContainer.findViewById(R.id.txtInputEdtTxtBirthday)
+        txtInputEdtTxtBirthday.setOnClickListener { displayDatePicker() }
     }
 
     private fun setObservers() {
@@ -80,6 +86,7 @@ class FragUpdateProfile: Fragment() {
                 autoCompleteTxtViewLocation.setAdapter(adapter)
             }
         })
+        viewModel.birthday.observe(this, Observer { txtInputEdtTxtBirthday.setText(it) })
     }
 
     private fun addSingleChoiceQuestions(questionsMap: HashMap<String, List<SingleChoiceAnswerItem>>) {
@@ -129,6 +136,26 @@ class FragUpdateProfile: Fragment() {
             }
             .setNegativeButton(getString(R.string.btnCancel)) { dialog, which -> }
             .create().show()
+    }
+
+    private fun displayDatePicker() {
+        val calendar = Calendar.getInstance()
+        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+        val currentMonth = calendar.get(Calendar.MONTH)
+        val currentYear = calendar.get(Calendar.YEAR)
+        // date picker dialog
+        context?.let { context ->
+            val picker = DatePickerDialog(
+                context,
+                DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+                    viewModel.setNewBirthday(year, monthOfYear, dayOfMonth)
+                },
+                currentYear,
+                currentMonth,
+                currentDay
+            )
+            picker.show()
+        }
     }
 }
 
