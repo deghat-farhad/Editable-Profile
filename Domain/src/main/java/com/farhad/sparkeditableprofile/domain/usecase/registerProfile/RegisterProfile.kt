@@ -10,8 +10,8 @@ class RegisterProfile(
     executorThread: Scheduler,
     uiThread: Scheduler,
     private val profileRepository: ProfileRepository
-): UseCase<RequestStatus, RegisterParams>(executorThread, uiThread) {
-    override fun buildUseCaseObservable(params: RegisterParams): Observable<RequestStatus> {
+): UseCase<RequestStatus, RegisterProfileParams>(executorThread, uiThread) {
+    override fun buildUseCaseObservable(params: RegisterProfileParams): Observable<RequestStatus> {
         return profileRepository.registerProfile(params.profile)
     }
 }

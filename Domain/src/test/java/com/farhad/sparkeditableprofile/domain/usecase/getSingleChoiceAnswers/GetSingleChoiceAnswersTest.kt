@@ -37,7 +37,7 @@ class GetSingleChoiceAnswersTest{
         }.onComplete()
     }
 
-    fun generateFakeLocationMap(questionCnt: Int, answerCnt: Int): HashMap<String, List<SingleChoiceAnswer>>{
+    private fun generateFakeLocationMap(questionCnt: Int, answerCnt: Int): HashMap<String, List<SingleChoiceAnswer>>{
         val output = HashMap<String, List<SingleChoiceAnswer>>()
 
         for (questionCntr in (1 .. questionCnt)){

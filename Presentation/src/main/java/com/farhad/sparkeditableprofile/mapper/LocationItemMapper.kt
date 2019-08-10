@@ -10,4 +10,5 @@ class LocationItemMapper @Inject constructor() {
 
     fun mapToPresentation(locations: List<Location>) = locations.map{mapToPresentation(it)}
 
+    fun mapToDomain(locationItem: LocationItem) = Location(locationItem.lat, locationItem.lon, locationItem.city)
 }

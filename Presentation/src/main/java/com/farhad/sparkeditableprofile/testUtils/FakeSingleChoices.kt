@@ -2,11 +2,10 @@ package com.farhad.sparkeditableprofile.testUtils
 
 import com.farhad.sparkeditableprofile.domain.model.SingleChoiceAnswer
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
-import kotlin.random.Random
 
 class FakeSingleChoices {
 
-    fun generateFakeSingleChoiceAnswerItemMap(
+    fun generateFakeSingleChoiceAnswerItemListMap(
         questionCnt: Int,
         answerCnt: Int
     ): HashMap<String, List<SingleChoiceAnswerItem>> {
@@ -26,7 +25,10 @@ class FakeSingleChoices {
         return output
     }
 
-    fun generateFakesingleChoiceAnswerMap(questionCnt: Int, answerCnt: Int): HashMap<String, List<SingleChoiceAnswer>>{
+    fun generateFakeSingleChoiceAnswerListMap(
+        questionCnt: Int,
+        answerCnt: Int
+    ): HashMap<String, List<SingleChoiceAnswer>> {
         val output = HashMap<String, List<SingleChoiceAnswer>>()
 
         for (questionCntr in (1 .. questionCnt)){
@@ -40,6 +42,22 @@ class FakeSingleChoices {
             output[question] = answerList
         }
 
+        return output
+    }
+
+    fun generateFakeSingleChoiceAnswerMap(size: Int): HashMap<String, SingleChoiceAnswer> {
+        val output = HashMap<String, SingleChoiceAnswer>()
+        for (cnt in (1..size)) {
+            output[RandomString().get()] = SingleChoiceAnswer(RandomString().get(), RandomString().get())
+        }
+        return output
+    }
+
+    fun generateFakeSingleChoiceAnswerItemMap(size: Int): HashMap<String, SingleChoiceAnswerItem> {
+        val output = HashMap<String, SingleChoiceAnswerItem>()
+        for (cnt in (1..size)) {
+            output[RandomString().get()] = SingleChoiceAnswerItem(RandomString().get(), RandomString().get())
+        }
         return output
     }
 }

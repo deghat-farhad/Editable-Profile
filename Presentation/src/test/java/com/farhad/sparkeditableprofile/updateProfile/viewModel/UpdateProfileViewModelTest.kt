@@ -2,23 +2,26 @@ package com.farhad.sparkeditableprofile.updateProfile.viewModel
 
 import android.graphics.Bitmap
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.farhad.sparkeditableprofile.domain.model.Location
-import com.farhad.sparkeditableprofile.domain.model.SingleChoiceAnswer
+import com.farhad.sparkeditableprofile.domain.model.*
 import com.farhad.sparkeditableprofile.domain.usecase.base.DefaultObserver
 import com.farhad.sparkeditableprofile.domain.usecase.getLocations.GetLocations
 import com.farhad.sparkeditableprofile.domain.usecase.getSingleChoiceAnswers.GetSingleChoiceAnswers
+import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfile
+import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfileParams
 import com.farhad.sparkeditableprofile.mapper.LocationItemMapper
+import com.farhad.sparkeditableprofile.mapper.ProfileItemMapper
 import com.farhad.sparkeditableprofile.mapper.SingleChoiceAnswerItemMapper
 import com.farhad.sparkeditableprofile.testUtils.FakeLocations
+import com.farhad.sparkeditableprofile.testUtils.FakeProfile
 import com.farhad.sparkeditableprofile.testUtils.FakeSingleChoices
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mock
-import org.mockito.Mockito
+import org.mockito.*
+import org.mockito.ArgumentCaptor.forClass
 import org.mockito.Mockito.mock
-import org.mockito.MockitoAnnotations
+import kotlin.collections.HashMap
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -40,6 +43,12 @@ class UpdateProfileViewModelTest {
     @Mock
     lateinit var locationItemMapper: LocationItemMapper
 
+    @Mock
+    lateinit var registerProfile: RegisterProfile
+
+    @Mock
+    lateinit var profileItemMapper: ProfileItemMapper
+
     @get:Rule
     val rule = InstantTaskExecutorRule()
 
@@ -51,8 +60,8 @@ class UpdateProfileViewModelTest {
     @Test
     fun testGetSingleChoices() {
 
-        val singleChoices = FakeSingleChoices().generateFakesingleChoiceAnswerMap(10, 8)
-        val singleChoiceItems = FakeSingleChoices().generateFakeSingleChoiceAnswerItemMap(10, 8)
+        val singleChoices = FakeSingleChoices().generateFakeSingleChoiceAnswerListMap(10, 8)
+        val singleChoiceItems = FakeSingleChoices().generateFakeSingleChoiceAnswerItemListMap(10, 8)
 
         Mockito.`when`(
             getSingleChoiceAnswers.execute(
@@ -71,12 +80,7 @@ class UpdateProfileViewModelTest {
 
         Mockito.`when`(singleChoiceAnswerItemMapper.mapListHashMapToPresentation(singleChoices))
             .thenReturn(singleChoiceItems)
-        val updateProfileViewModel = UpdateProfileViewModel(
-            singleChoiceAnswerItemMapper,
-            locationItemMapper,
-            getSingleChoiceAnswers,
-            getLocations
-        )
+        val updateProfileViewModel = updateProfileViewModel()
 
         assertEquals(singleChoiceItems, updateProfileViewModel.questionSingleChoices.value)
     }
@@ -103,12 +107,7 @@ class UpdateProfileViewModelTest {
         Mockito.`when`(locationItemMapper.mapToPresentation(locations))
             .thenReturn(locationItems)
 
-        val updateProfileViewModel = UpdateProfileViewModel(
-            singleChoiceAnswerItemMapper,
-            locationItemMapper,
-            getSingleChoiceAnswers,
-            getLocations
-        )
+        val updateProfileViewModel = updateProfileViewModel()
 
         assertEquals(locationItems.map { it.city }, updateProfileViewModel.questionLocationsStrings.value)
     }
@@ -120,12 +119,7 @@ class UpdateProfileViewModelTest {
         val month = Random.nextInt(0..11)
         val day = Random.nextInt(1..30)
 
-        val updateProfileViewModel = UpdateProfileViewModel(
-            singleChoiceAnswerItemMapper,
-            locationItemMapper,
-            getSingleChoiceAnswers,
-            getLocations
-        )
+        val updateProfileViewModel = updateProfileViewModel()
 
         updateProfileViewModel.setNewBirthday(year, month, day)
 
@@ -136,17 +130,73 @@ class UpdateProfileViewModelTest {
     fun setProfilePictureTest(){
         val bmp = mock(Bitmap::class.java)
 
-        val updateProfileViewModel = UpdateProfileViewModel(
-            singleChoiceAnswerItemMapper,
-            locationItemMapper,
-            getSingleChoiceAnswers,
-            getLocations
-        )
+        val updateProfileViewModel = updateProfileViewModel()
 
         updateProfileViewModel.setProfilePicture(bmp)
 
         assertEquals(updateProfileViewModel.profilePicture.value, bmp)
     }
+
+    @Test
+    fun submit(){
+        val locationItems = FakeLocations().generateLocationItemList(100).toMutableList()
+        val singleChoiceItems = FakeSingleChoices().generateFakeSingleChoiceAnswerItemListMap(10, 8)
+        val profile = FakeProfile(locationItems, singleChoiceItems).getProfile()
+
+        val answers = HashMap<String, String>()
+        for (question in profile.answers.keys){
+            profile.answers[question]?.let {
+                answers[question] = it.name!!
+            }
+        }
+
+        Mockito.`when`(profileItemMapper.mapToDomain(any()))
+            .thenReturn(profile)
+
+        val updateProfileViewModel = updateProfileViewModel()
+
+        updateProfileViewModel.newBirthDay = profile.birthday
+        updateProfileViewModel.questionLocations = locationItems
+        updateProfileViewModel.questionSingleChoices.value = singleChoiceItems
+        updateProfileViewModel.questionLocationsStrings.value = locationItems.map { it.city }
+
+        updateProfileViewModel.submit(
+            profile.displayName.toString(),
+            profile.realName.toString(),
+            profile.occupation.toString(),
+            profile.aboutMe.toString(),
+            profile.location?.city.toString(),
+            profile.height!!,
+            answers)
+
+        val captor:ArgumentCaptor<RegisterProfileParams> =  forClass(RegisterProfileParams::class.java)
+
+        Mockito.verify(registerProfile).execute(any(), capture(captor))
+
+        assertEquals(profile.displayName, captor.value.profile.displayName)
+        assertEquals(profile.realName, captor.value.profile.realName)
+        assertEquals(profile.occupation, captor.value.profile.occupation)
+        assertEquals(profile.aboutMe, captor.value.profile.aboutMe)
+        assertEquals(profile.height, captor.value.profile.height)
+
+        assertEquals(profile.location?.lat, captor.value.profile.location?.lat)
+        assertEquals(profile.location?.lon, captor.value.profile.location?.lon)
+        assertEquals(profile.location?.city, captor.value.profile.location?.city)
+
+        for(question in profile.answers.keys){
+            assertEquals(profile.answers[question]?.id, captor.value.profile.answers[question]?.id)
+            assertEquals(profile.answers[question]?.name, captor.value.profile.answers[question]?.name)
+        }
+    }
+
+    private fun updateProfileViewModel() = UpdateProfileViewModel(
+        singleChoiceAnswerItemMapper,
+        locationItemMapper,
+        getSingleChoiceAnswers,
+        getLocations,
+        registerProfile,
+        profileItemMapper
+    )
 
     private fun <T> any(): T {
         Mockito.any<T>()
@@ -154,4 +204,10 @@ class UpdateProfileViewModelTest {
     }
 
     private fun <T> uninitialized(): T = null as T
+
+    /**
+     * Returns ArgumentCaptor.capture() as nullable type to avoid java.lang.IllegalStateException
+     * when null is returned.
+     */
+    fun <T> capture(argumentCaptor: ArgumentCaptor<T>): T = argumentCaptor.capture()
 }

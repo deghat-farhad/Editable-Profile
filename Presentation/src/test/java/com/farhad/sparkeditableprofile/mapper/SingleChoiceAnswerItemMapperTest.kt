@@ -9,7 +9,7 @@ class SingleChoiceAnswerItemMapperTest {
 
     @Test
     fun mapListHashMapToPresentation() {
-        val singleChoiceAnswers = FakeSingleChoices().generateFakesingleChoiceAnswerMap(10, 8)
+        val singleChoiceAnswers = FakeSingleChoices().generateFakeSingleChoiceAnswerListMap(10, 8)
 
         val singleChoiceAnswerItems = SingleChoiceAnswerItemMapper().mapListHashMapToPresentation(singleChoiceAnswers)
 
@@ -28,7 +28,36 @@ class SingleChoiceAnswerItemMapperTest {
                     )
                 }
             }
+        }
+    }
 
+    @Test
+    fun mapToPresentation(){
+        val size = 100
+        val singleChoiceAnswers = FakeSingleChoices().generateFakeSingleChoiceAnswerMap(size)
+
+        val singleChoiceAnswerItems = SingleChoiceAnswerItemMapper().mapToPresentation(singleChoiceAnswers)
+
+        assertEquals(singleChoiceAnswers.size, singleChoiceAnswerItems.size)
+
+        for(question in singleChoiceAnswers.keys){
+            assertEquals(singleChoiceAnswers[question]?.id, singleChoiceAnswerItems[question]?.id)
+            assertEquals(singleChoiceAnswers[question]?.name, singleChoiceAnswerItems[question]?.name)
+        }
+    }
+
+    @Test
+    fun mapToDomain(){
+        val size = 100
+        val singleChoiceAnswerItems = FakeSingleChoices().generateFakeSingleChoiceAnswerItemMap(size)
+
+        val singleChoiceAnswers = SingleChoiceAnswerItemMapper().mapToDomain(singleChoiceAnswerItems)
+
+        assertEquals(singleChoiceAnswerItems.size, singleChoiceAnswers.size)
+
+        for(question in singleChoiceAnswers.keys){
+            assertEquals(singleChoiceAnswerItems[question]?.id, singleChoiceAnswers[question]?.id)
+            assertEquals(singleChoiceAnswerItems[question]?.name, singleChoiceAnswers[question]?.name)
         }
     }
 }

@@ -24,7 +24,7 @@ class RegisterProfileTest {
 
 
         val registerProfile = RegisterProfile(subscribeOnScheduler, observeOnScheduler, profileRepository)
-        val regesterParams = RegisterParams(Profile)
+        val regesterParams = RegisterProfileParams(Profile)
 
         registerProfile.buildUseCaseObservable(regesterParams).test().assertValue {
             it == requestStatus

@@ -47,7 +47,7 @@
                         android:src="@drawable/ic_add"/>
 
                 <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSaveChanges"
+                        android:id="@+id/btnSubmit"
                         style="@style/ButtonTheme"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

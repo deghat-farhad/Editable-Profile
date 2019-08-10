@@ -1,6 +1,7 @@
 package com.farhad.sparkeditableprofile.mapper
 
 import com.farhad.sparkeditableprofile.domain.model.Location
+import com.farhad.sparkeditableprofile.model.LocationItem
 import com.farhad.sparkeditableprofile.testUtils.FakeLocations
 import com.farhad.sparkeditableprofile.testUtils.RandomString
 import org.junit.Test
@@ -29,5 +30,20 @@ class LocationItemMapperTest {
             assertEquals(locationList[cnt].lat, locationItemList[cnt].lat)
             assertEquals(locationList[cnt].lon, locationItemList[cnt].lon)
         }
+    }
+
+    @Test
+    fun mapToDomain(){
+        val locationItem = LocationItem(
+            RandomString().get(),
+            RandomString().get(),
+            RandomString().get()
+        )
+
+        val location = LocationItemMapper().mapToDomain(locationItem)
+
+        assertEquals(locationItem.city, location.city)
+        assertEquals(locationItem.lat, location.lat)
+        assertEquals(locationItem.lon, location.lon)
     }
 }

@@ -43,9 +43,12 @@ class FragUpdateProfile: Fragment() {
     private lateinit var txtInputEdtTxtBirthday: TextInputEditText
     private lateinit var imgViewEditProfilePic: ImageView
     private lateinit var btnAddProfilePic: ImageButton
-
-
-
+    private lateinit var btnSubmit: Button
+    private lateinit var txtInputEdtTxtDisplayName: TextInputEditText
+    private lateinit var txtInputEdtTxtAboutMe: TextInputEditText
+    private lateinit var txtInputEdtTxtRealName: TextInputEditText
+    private lateinit var txtInputEdtTxtOccupation: TextInputEditText
+    private lateinit var txtInputEdtTxtHeight: TextInputEditText
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -63,7 +66,7 @@ class FragUpdateProfile: Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initViews(view)
-        if(!::viewModelFactory.isInitialized){
+        if (!::viewModelFactory.isInitialized) {
             injectThisToDagger()
         }
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(UpdateProfileViewModel::class.java)
@@ -82,16 +85,25 @@ class FragUpdateProfile: Fragment() {
         autoCompleteTxtViewLocation =
             fragContainer.findViewById(R.id.autoCompleteTxtViewLocation) as AutoCompleteTextView
         txtInputEdtTxtBirthday = fragContainer.findViewById(R.id.txtInputEdtTxtBirthday)
-        txtInputEdtTxtBirthday.setOnClickListener { displayDatePicker() }
         imgViewEditProfilePic = fragContainer.findViewById(R.id.imgViewEditProfilePic)
         btnAddProfilePic = fragContainer.findViewById(R.id.btnAddProfilePic)
+        btnSubmit = fragContainer.findViewById(R.id.btnSubmit)
+        txtInputEdtTxtDisplayName = fragContainer.findViewById(R.id.txtInputEdtTxtDisplayName)
+        txtInputEdtTxtAboutMe = fragContainer.findViewById(R.id.txtInputEdtTxtAboutMe)
+        txtInputEdtTxtRealName = fragContainer.findViewById(R.id.txtInputEdtTxtRealName)
+        txtInputEdtTxtOccupation = fragContainer.findViewById(R.id.txtInputEdtTxtOccupation)
+        txtInputEdtTxtHeight = fragContainer.findViewById(R.id.txtInputEdtTxtHeight)
+
+        txtInputEdtTxtBirthday.setOnClickListener { displayDatePicker() }
         btnAddProfilePic.setOnClickListener { pickImage() }
+        btnSubmit.setOnClickListener { submit() }
+
     }
 
     private fun setObservers() {
         viewModel.questionSingleChoices.observe(this, Observer { addSingleChoiceQuestions(it) })
         viewModel.questionLocationsStrings.observe(this, Observer {
-            context?.let {context ->
+            context?.let { context ->
                 val adapter = ArrayAdapter(
                     context,
                     android.R.layout.simple_dropdown_item_1line,
@@ -205,6 +217,27 @@ class FragUpdateProfile: Fragment() {
         imageDrawable.cornerRadius = min(bitmap.width, bitmap.height) / 2.0f
 
         return imageDrawable
+    }
+
+    private fun submit() {
+        var height = -1
+        txtInputEdtTxtHeight.text?.let {
+            if (it.isNotEmpty())
+                height = Integer.parseInt(it.toString())
+        }
+
+        val displayName = txtInputEdtTxtDisplayName.text.toString()
+        val realName = txtInputEdtTxtRealName.text.toString()
+        val occupation = txtInputEdtTxtOccupation.text.toString()
+        val aboutMe = txtInputEdtTxtAboutMe.text.toString()
+        val city = autoCompleteTxtViewLocation.text.toString()
+        val answers = HashMap<String, String>()
+        for (singleChoiceTextInputsKey in singleChoiceTextInputs.keys) {
+            singleChoiceTextInputs[singleChoiceTextInputsKey]?.let {
+                answers[singleChoiceTextInputsKey] = it.text.toString()
+            }
+        }
+        viewModel.submit(displayName, realName, occupation, aboutMe, city, height, answers)
     }
 }
 

@@ -1,8 +1,10 @@
 package com.farhad.sparkeditableprofile.di
 
+import com.farhad.sparkeditableprofile.domain.repository.ProfileRepository
 import com.farhad.sparkeditableprofile.domain.repository.QuestionRepository
 import com.farhad.sparkeditableprofile.domain.usecase.getLocations.GetLocations
 import com.farhad.sparkeditableprofile.domain.usecase.getSingleChoiceAnswers.GetSingleChoiceAnswers
+import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfile
 import dagger.Module
 import dagger.Provides
 import io.reactivex.Scheduler
@@ -28,6 +30,15 @@ class DomainModule {
         @Named("mainThreadScheduler") mainThreadScheduler: Scheduler
     ): GetLocations {
         return GetLocations(ioScheduler, mainThreadScheduler, questionsRepository)
+    }
+
+    @Provides
+    fun registerProfile(
+        profileRepository: ProfileRepository,
+        @Named("ioScheduler") ioScheduler: Scheduler,
+        @Named("mainThreadScheduler") mainThreadScheduler: Scheduler
+    ): RegisterProfile {
+        return RegisterProfile(ioScheduler, mainThreadScheduler, profileRepository)
     }
 
     @Provides

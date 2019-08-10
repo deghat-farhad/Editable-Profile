@@ -3,14 +3,9 @@ package com.farhad.sparkeditableprofile.updateProfile.view
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.VectorDrawable
 import android.view.View
 import android.widget.DatePicker
 import android.widget.ImageView
-import androidx.annotation.DrawableRes
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
@@ -30,7 +25,6 @@ import com.farhad.sparkeditableprofile.testUtils.FakeSingleChoices
 import com.farhad.sparkeditableprofile.testUtils.RandomString
 import com.farhad.sparkeditableprofile.updateProfile.viewModel.UpdateProfileViewModel
 import org.hamcrest.Matchers.*
-import org.hamcrest.TypeSafeMatcher
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -78,7 +72,7 @@ class FragUpdateProfileTest {
 
     @Test
     fun showSingleChoiceQuestionsTest() {
-        val answersMap = FakeSingleChoices().generateFakeSingleChoiceAnswerItemMap(10, 8)
+        val answersMap = FakeSingleChoices().generateFakeSingleChoiceAnswerItemListMap(10, 8)
 
         runOnUiThread {
             liveSingleChoiceAnswersMap.value = answersMap
@@ -132,8 +126,6 @@ class FragUpdateProfileTest {
         val month = Random.nextInt(1..12)
         val day = Random.nextInt(1..30)
 
-        Mockito.spy(updateProfileViewModel)
-
         onView(withId(R.id.txtInputEdtTxtBirthday)).perform(click())
         onView(withClassName(equalTo(DatePicker::class.java.name))).perform(PickerActions.setDate(year, month, day))
         onView(withText("OK")).perform(click())
@@ -162,6 +154,55 @@ class FragUpdateProfileTest {
 
         onView(withId(R.id.imgViewEditProfilePic)).check(matches(hasDrawable()))
         onView(withId(R.id.imgViewEditProfilePic)).check(matches(not(DrawableMatcher(R.drawable.ic_profile))))
+    }
+
+    @Test
+    fun submitTest() {
+        val displayName = RandomString().get()
+        val realName = RandomString().get()
+        val occupation = RandomString().get()
+        val aboutMe = RandomString().get()
+        val city = RandomString().get()
+        val height = Random.nextInt(100..180)
+        val answersMap = FakeSingleChoices().generateFakeSingleChoiceAnswerItemListMap(10, 8)
+        val answers = HashMap<String, String>()
+
+
+        runOnUiThread {
+            liveSingleChoiceAnswersMap.value = answersMap
+        }
+
+
+        onView(withId(R.id.txtInputEdtTxtDisplayName)).perform(typeText(displayName), closeSoftKeyboard())
+        onView(withId(R.id.txtInputEdtTxtRealName)).perform(typeText(realName), closeSoftKeyboard())
+        onView(withId(R.id.txtInputEdtTxtOccupation)).perform(typeText(occupation), closeSoftKeyboard())
+        onView(withId(R.id.txtInputEdtTxtAboutMe)).perform(typeText(aboutMe), closeSoftKeyboard())
+        onView(withId(R.id.autoCompleteTxtViewLocation)).perform(typeText(city), closeSoftKeyboard())
+        onView(withId(R.id.txtInputEdtTxtHeight)).perform(typeText(height.toString()), closeSoftKeyboard())
+
+
+        for (key in answersMap.keys) {
+            val singleChoiceAnswerInteraction = onView(withHint(key))
+            singleChoiceAnswerInteraction
+                .perform(scrollTo())
+                .perform(click())
+            answersMap[key]?.let {
+                for (answer in it) {
+                    onView(withText(answer.name))
+                        .perform(scrollTo())
+                }
+                val selectIndex = Random.nextInt(it.size)
+                onView(withText(it[selectIndex].name))
+                    .perform(click())
+                it[selectIndex].name?.let { answer -> answers[key] = answer }
+                onView(withText("OK")).perform(click())
+            }
+        }
+
+        onView(withId(R.id.btnSubmit)).perform(scrollTo(), click())
+
+        Mockito.verify(updateProfileViewModel).submit(displayName, realName, occupation, aboutMe, city, height, answers)
+
     }
 
     private fun hasDrawable(): BoundedMatcher<View, ImageView> {
