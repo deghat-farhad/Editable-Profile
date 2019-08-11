@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.farhad.sparkeditableprofile.domain.model.Location
+import com.farhad.sparkeditableprofile.domain.model.ProfilePicture
 import com.farhad.sparkeditableprofile.domain.model.RequestStatus
 import com.farhad.sparkeditableprofile.domain.model.SingleChoiceAnswer
 import com.farhad.sparkeditableprofile.domain.usecase.base.DefaultObserver
@@ -11,6 +12,8 @@ import com.farhad.sparkeditableprofile.domain.usecase.getLocations.GetLocations
 import com.farhad.sparkeditableprofile.domain.usecase.getSingleChoiceAnswers.GetSingleChoiceAnswers
 import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfile
 import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfileParams
+import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.UploadProfilePicture
+import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.UploadProfilePictureParams
 import com.farhad.sparkeditableprofile.mapper.LocationItemMapper
 import com.farhad.sparkeditableprofile.mapper.ProfileItemMapper
 import com.farhad.sparkeditableprofile.mapper.SingleChoiceAnswerItemMapper
@@ -19,6 +22,9 @@ import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
@@ -30,11 +36,14 @@ open class UpdateProfileViewModel @Inject constructor(
     private val getSingleChoiceAnswers: GetSingleChoiceAnswers,
     private val getLocations: GetLocations,
     private val registerProfile: RegisterProfile,
-    private val profileItemMapper: ProfileItemMapper
+    private val profileItemMapper: ProfileItemMapper,
+    private val uploadProfilePicture: UploadProfilePicture
 ): ViewModel() {
     private val bag = CompositeDisposable()
     lateinit var questionLocations: List<LocationItem>
     var newBirthDay: Date? = null
+    var profilePictureFile: File? = null
+
 
 
     open val questionSingleChoices = MutableLiveData<HashMap<String, List<SingleChoiceAnswerItem>>>()
@@ -84,8 +93,27 @@ open class UpdateProfileViewModel @Inject constructor(
         return formatter.format(date)
     }
 
-    open fun setProfilePicture(profilePicture: Bitmap) {
-        this.profilePicture.value = profilePicture
+    open fun setProfilePicture(profilePictureBitmap: Bitmap?, cacheDir: String) {
+        this.profilePicture.value = profilePictureBitmap
+        profilePictureBitmap?.let{
+            saveBitmap(it, cacheDir)
+        }
+    }
+
+    private fun saveBitmap(profilePictureBitmap: Bitmap, cacheDir: String){
+        profilePictureFile = File(cacheDir, "tmp.jpg")
+        profilePictureFile?.let {
+            it.createNewFile()
+
+            val bos = ByteArrayOutputStream()
+            profilePictureBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bos)
+            val bitmapData = bos.toByteArray()
+
+            val fos = FileOutputStream(profilePictureFile)
+            fos.write(bitmapData)
+            fos.flush()
+            fos.close()
+        }
     }
 
     open fun submit(
@@ -133,6 +161,9 @@ open class UpdateProfileViewModel @Inject constructor(
             override fun onNext(it: RequestStatus) {
                 super.onNext(it)
                 println(profileItem.id)
+                profilePictureFile?.let {
+                    uploadPicture(profileItem, it)
+                }
             }
         }
 
@@ -147,5 +178,16 @@ open class UpdateProfileViewModel @Inject constructor(
             .map { Random.nextInt(0, charPool.size) }
             .map(charPool::get)
             .joinToString("")
+    }
+
+    open fun uploadPicture(profileItem: ProfileItem, profilePicture: File){
+        val uploadProfilePictureObserver = object: DefaultObserver<ProfilePicture>(){
+            override fun onNext(it: ProfilePicture) {
+                super.onNext(it)
+                println(it.url)
+            }
+        }
+        val params = UploadProfilePictureParams(profilePicture, profileItemMapper.mapToDomain(profileItem))
+        uploadProfilePicture.execute(uploadProfilePictureObserver, params)
     }
 }

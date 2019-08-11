@@ -5,10 +5,7 @@ import android.app.Instrumentation
 import android.content.ContentResolver
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
-import android.view.View
-import android.widget.ImageView
 import androidx.lifecycle.MutableLiveData
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
@@ -17,7 +14,6 @@ import androidx.test.espresso.intent.Intents.intended
 import androidx.test.espresso.intent.Intents.intending
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasType
-import androidx.test.espresso.matcher.BoundedMatcher
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -27,7 +23,6 @@ import com.farhad.sparkeditableprofile.di.ViewModelFactory
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
 import com.farhad.sparkeditableprofile.testUtils.ActFragTest
 import com.farhad.sparkeditableprofile.updateProfile.viewModel.UpdateProfileViewModel
-import junit.framework.Assert.assertTrue
 import org.hamcrest.CoreMatchers.allOf
 import org.junit.Before
 import org.junit.Rule
@@ -36,8 +31,6 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
-import java.io.File
-import java.io.FileOutputStream
 
 
 @RunWith(AndroidJUnit4::class)
@@ -74,8 +67,6 @@ class FragUpdateProfilePictureSelectedTest {
         Mockito.`when`(updateProfileViewModel.birthday).thenReturn(liveBirthday)
         Mockito.`when`(updateProfileViewModel.profilePicture).thenReturn(liveProfilePicture)
 
-        savePickedImage()
-
         mActivityResult = getImageResult()
     }
 
@@ -83,7 +74,7 @@ class FragUpdateProfilePictureSelectedTest {
     fun testPick() {
         Intents.init()
         val expectedIntent = allOf(
-            hasAction(Intent.ACTION_GET_CONTENT),
+            hasAction(Intent.ACTION_PICK),
             hasType("image/*")
         )
 
@@ -92,33 +83,24 @@ class FragUpdateProfilePictureSelectedTest {
         intended(expectedIntent)
         Intents.release()
 
-        Mockito.verify(updateProfileViewModel).setProfilePicture(any())
+        Mockito.verify(updateProfileViewModel).setProfilePicture(any<Bitmap>(), any())
     }
 
     private fun  getImageResult():Instrumentation.ActivityResult {
         val resultData = Intent()
-        val dir = testActivityRule.activity.externalCacheDir
-        dir?.let {
-            val file = File(dir.path, "pickImageResult.jpeg")
-            val uri = Uri.fromFile(file)
-            resultData.data = uri
-        }
+        val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
+        val imageUri = Uri.parse(
+            ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + resources
+                .getResourcePackageName(
+                    R.mipmap.ic_launcher
+                ) + '/'.toString() + resources.getResourceTypeName(
+                R.mipmap.ic_launcher
+            ) + '/'.toString() + resources.getResourceEntryName(
+                R.mipmap.ic_launcher
+            )
+        )
+        resultData.data = imageUri
         return Instrumentation.ActivityResult(Activity.RESULT_OK, resultData)
-    }
-
-    private fun savePickedImage()
-    {
-        val bm = BitmapFactory.decodeResource (testActivityRule.activity.resources, android.R.drawable.ic_dialog_alert)
-        assertTrue(bm != null)
-        val dir = testActivityRule.activity.externalCacheDir
-        dir?.let {
-            val file = File(dir.path, "pickImageResult.jpeg")
-            println(file.absolutePath)
-            val outStream = FileOutputStream (file)
-            bm.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
-            outStream.flush()
-            outStream.close()
-        }
     }
 
     private fun <T> any(): T {

@@ -5,6 +5,7 @@ import com.farhad.sparkeditableprofile.domain.repository.QuestionRepository
 import com.farhad.sparkeditableprofile.domain.usecase.getLocations.GetLocations
 import com.farhad.sparkeditableprofile.domain.usecase.getSingleChoiceAnswers.GetSingleChoiceAnswers
 import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfile
+import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.UploadProfilePicture
 import dagger.Module
 import dagger.Provides
 import io.reactivex.Scheduler
@@ -30,6 +31,15 @@ class DomainModule {
         @Named("mainThreadScheduler") mainThreadScheduler: Scheduler
     ): GetLocations {
         return GetLocations(ioScheduler, mainThreadScheduler, questionsRepository)
+    }
+
+    @Provides
+    fun uploadPicture(
+        profileRepository: ProfileRepository,
+        @Named("ioScheduler") ioScheduler: Scheduler,
+        @Named("mainThreadScheduler") mainThreadScheduler: Scheduler
+    ): UploadProfilePicture {
+        return UploadProfilePicture(ioScheduler, mainThreadScheduler, profileRepository)
     }
 
     @Provides

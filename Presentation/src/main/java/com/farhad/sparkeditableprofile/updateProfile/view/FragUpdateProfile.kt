@@ -1,12 +1,13 @@
 package com.farhad.sparkeditableprofile.updateProfile.view
 
+import android.Manifest
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.LayoutInflater
@@ -189,7 +190,7 @@ class FragUpdateProfile: Fragment() {
 
     private fun pickImage() {
         val intent = Intent(
-            Intent.ACTION_GET_CONTENT,
+            Intent.ACTION_PICK,
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         )
 
@@ -200,15 +201,14 @@ class FragUpdateProfile: Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         if (resultCode == Activity.RESULT_OK && requestCode == PICK_IMAGE) {
             val imageUri = intent?.data
-            imageUri?.let {
-                viewModel.setProfilePicture(uriToBitmap(it))
+            imageUri?.let {uri->
+                val inputStream = activity?.contentResolver?.openInputStream(uri)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                context?.let{
+                    viewModel.setProfilePicture(bitmap, it.cacheDir.path)
+                }
             }
         }
-
-    }
-
-    private fun uriToBitmap(uri: Uri): Bitmap {
-        return MediaStore.Images.Media.getBitmap(activity?.contentResolver, uri)
     }
 
     private fun bitmapToRoundDrawable(bitmap: Bitmap): Drawable {

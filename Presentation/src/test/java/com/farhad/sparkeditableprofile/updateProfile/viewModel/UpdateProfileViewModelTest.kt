@@ -1,6 +1,7 @@
 package com.farhad.sparkeditableprofile.updateProfile.viewModel
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.farhad.sparkeditableprofile.domain.model.*
 import com.farhad.sparkeditableprofile.domain.usecase.base.DefaultObserver
@@ -8,12 +9,16 @@ import com.farhad.sparkeditableprofile.domain.usecase.getLocations.GetLocations
 import com.farhad.sparkeditableprofile.domain.usecase.getSingleChoiceAnswers.GetSingleChoiceAnswers
 import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfile
 import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfileParams
+import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.UploadProfilePicture
+import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.UploadProfilePictureParams
 import com.farhad.sparkeditableprofile.mapper.LocationItemMapper
 import com.farhad.sparkeditableprofile.mapper.ProfileItemMapper
 import com.farhad.sparkeditableprofile.mapper.SingleChoiceAnswerItemMapper
 import com.farhad.sparkeditableprofile.testUtils.FakeLocations
 import com.farhad.sparkeditableprofile.testUtils.FakeProfile
 import com.farhad.sparkeditableprofile.testUtils.FakeSingleChoices
+import com.farhad.sparkeditableprofile.testUtils.RandomString
+import junit.framework.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -21,6 +26,9 @@ import org.junit.Test
 import org.mockito.*
 import org.mockito.ArgumentCaptor.forClass
 import org.mockito.Mockito.mock
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import kotlin.collections.HashMap
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -48,6 +56,9 @@ class UpdateProfileViewModelTest {
 
     @Mock
     lateinit var profileItemMapper: ProfileItemMapper
+
+    @Mock
+    lateinit var uploadProfilePicture: UploadProfilePicture
 
     @get:Rule
     val rule = InstantTaskExecutorRule()
@@ -126,13 +137,14 @@ class UpdateProfileViewModelTest {
         assertEquals(updateProfileViewModel.birthday.value, "$day ${monthsName[month]} $year")
     }
 
-    @Test
+    @Test(expected = IOException::class)
     fun setProfilePictureTest(){
         val bmp = mock(Bitmap::class.java)
+        val path = "cacheDir"
 
         val updateProfileViewModel = updateProfileViewModel()
 
-        updateProfileViewModel.setProfilePicture(bmp)
+        updateProfileViewModel.setProfilePicture(bmp, path)
 
         assertEquals(updateProfileViewModel.profilePicture.value, bmp)
     }
@@ -189,13 +201,38 @@ class UpdateProfileViewModelTest {
         }
     }
 
+    @Test
+    fun uploadPictureTest(){
+        val locationItems = FakeLocations().generateLocationItemList(100).toMutableList()
+        val singleChoiceItems = FakeSingleChoices().generateFakeSingleChoiceAnswerItemListMap(10, 8)
+        val fakeProfile = FakeProfile(locationItems, singleChoiceItems)
+        val profileItem = fakeProfile.getProfileItem()
+        val profile = fakeProfile.getProfile()
+
+        val profilePicture = File(RandomString().get())
+
+        Mockito.`when`(profileItemMapper.mapToDomain(any()))
+            .thenReturn(profile)
+        val updateProfileViewModel = updateProfileViewModel()
+
+        updateProfileViewModel.uploadPicture(profileItem, profilePicture)
+
+        val captor:ArgumentCaptor<UploadProfilePictureParams> =  forClass(UploadProfilePictureParams::class.java)
+
+        Mockito.verify(uploadProfilePicture).execute(any(), capture(captor))
+
+        assertEquals(profile, captor.value.profile)
+        assertEquals(profilePicture, captor.value.picture)
+    }
+
     private fun updateProfileViewModel() = UpdateProfileViewModel(
         singleChoiceAnswerItemMapper,
         locationItemMapper,
         getSingleChoiceAnswers,
         getLocations,
         registerProfile,
-        profileItemMapper
+        profileItemMapper,
+        uploadProfilePicture
     )
 
     private fun <T> any(): T {
