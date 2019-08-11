@@ -9,4 +9,5 @@ import java.io.File
 interface ProfileRepository {
     fun registerProfile(profile: Profile): Observable<RequestStatus>
     fun uploadProfilePicture(picture: File, profile: Profile): Observable<ProfilePicture>
+    fun getProfile(userId: String): Observable<Profile>
 }
