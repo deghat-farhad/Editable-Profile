@@ -17,6 +17,7 @@ class ProfileRepositoryImpl(
     private val profileEntityMapper: ProfileEntityMapper,
     private val profilePictureMapper: ProfilePictureEntityMapper
 ): ProfileRepository {
+
     override fun uploadProfilePicture(picture: File, profile: Profile): Observable<ProfilePicture> {
         return remote.uploadProfilePicture(picture, profile.id)
             .map { profilePictureMapper.mapToDomain(it) }
@@ -25,5 +26,9 @@ class ProfileRepositoryImpl(
     override fun registerProfile(profile: Profile): Observable<RequestStatus> {
         return remote.registerProfile(profileEntityMapper.mapToData(profile))
             .map { requestStatusEntityMapper.mapToDomain(it) }
+    }
+
+    override fun getProfile(userId: String): Observable<Profile> {
+        return remote.getProfile(userId).map { profileEntityMapper.mapToDomain(it) }
     }
 }

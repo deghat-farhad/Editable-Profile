@@ -22,4 +22,5 @@ class Remote(private val serviceGenerator: ServiceGenerator) {
 
     fun getLocations() = serviceGenerator.questionService().getLocations()
     fun getSingleChoiceAnswers() = serviceGenerator.questionService().getSingleChoiceAnswers()
+    fun getProfile(userId: String) = serviceGenerator.profileService().getProfile(userId)
 }

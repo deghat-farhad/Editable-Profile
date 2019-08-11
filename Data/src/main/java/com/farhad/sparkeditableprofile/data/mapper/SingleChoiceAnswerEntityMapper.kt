@@ -33,4 +33,16 @@ class SingleChoiceAnswerEntityMapper {
         }
         return outPut
     }
+
+    fun mapToDomain(singleChoiceAnswerEntitiesMap: Map<String, SingleChoiceAnswerEntity>)
+            : HashMap<String, SingleChoiceAnswer> {
+        val outPut = HashMap<String, SingleChoiceAnswer>()
+
+        for (key in singleChoiceAnswerEntitiesMap.keys) {
+            val singleChoiceAnswerEntity = singleChoiceAnswerEntitiesMap[key]
+            singleChoiceAnswerEntity?.let { outPut[key] = mapToDomain(it) }
+        }
+
+        return outPut
+    }
 }

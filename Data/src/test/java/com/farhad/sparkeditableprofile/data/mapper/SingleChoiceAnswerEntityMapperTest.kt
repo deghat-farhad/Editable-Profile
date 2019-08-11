@@ -1,6 +1,7 @@
 package com.farhad.sparkeditableprofile.data.mapper
 
 import com.farhad.sparkeditableprofile.data.entity.SingleChoiceAnswerEntity
+import com.farhad.sparkeditableprofile.data.testUtils.FakeSingleChoices
 import com.farhad.sparkeditableprofile.domain.model.SingleChoiceAnswer
 import net.bytebuddy.utility.RandomString
 import org.junit.Assert.assertEquals
@@ -10,7 +11,7 @@ class SingleChoiceAnswerEntityMapperTest {
 
     @Test
     fun mapToData() {
-        val singleChoiceAnswer = generateSingleChoicesAnswer()
+        val singleChoiceAnswer = SingleChoiceAnswer(RandomString.make(), RandomString.make())
 
 
         val singleChoiceAnswerEntityMapper = SingleChoiceAnswerEntityMapper()
@@ -22,7 +23,7 @@ class SingleChoiceAnswerEntityMapperTest {
 
     @Test
     fun mapAnswersHashMapToData(){
-        val answerHashMap = generateSingleChoicesAnswerMap(10)
+        val answerHashMap = FakeSingleChoices().generateFakeSingleChoiceAnswerMap(10)
         val singleChoiceAnswerEntityMapper = SingleChoiceAnswerEntityMapper()
         val singleChoiceAnswerEntityHashMap
                 = singleChoiceAnswerEntityMapper.mapToData(answerHashMap)
@@ -36,7 +37,7 @@ class SingleChoiceAnswerEntityMapperTest {
 
     @Test
     fun mapToDomain(){
-        val singleChoiceAnswerEntity = generateSingleChoicesAnswerEntity()
+        val singleChoiceAnswerEntity = SingleChoiceAnswerEntity(RandomString.make(), RandomString.make())
 
         val singleChoiceAnswerEntityMapper = SingleChoiceAnswerEntityMapper()
         val singleChoiceAnswer = singleChoiceAnswerEntityMapper.mapToDomain(singleChoiceAnswerEntity)
@@ -48,7 +49,7 @@ class SingleChoiceAnswerEntityMapperTest {
     @Test
     fun mapListToDomain(){
         val singleChoiceAnswerEntityMap
-                = generateFakeSingleChoiceAnswerEntityMap(10, 10)
+                = FakeSingleChoices().generateFakeSingleChoiceAnswerEntityListMap(10, 10)
 
         val singleChoiceAnswerEntityMapper = SingleChoiceAnswerEntityMapper()
         val singleChoiceAnswerMap
@@ -66,36 +67,17 @@ class SingleChoiceAnswerEntityMapperTest {
         }
     }
 
-    private fun generateSingleChoicesAnswer() = SingleChoiceAnswer(RandomString.make(), RandomString.make())
+    @Test
+    fun mapToDomainTest(){
+        val fakeSingleChoiceEntityMap = FakeSingleChoices().generateFakeSingleChoiceAnswerEntityMap(10)
 
-    private fun generateSingleChoicesAnswerMap(count: Int): HashMap<String, SingleChoiceAnswer> {
-        val output = HashMap<String, SingleChoiceAnswer>()
+        val singleChoiceAnswerEntityMapper = SingleChoiceAnswerEntityMapper()
+        val mappedAnswers = singleChoiceAnswerEntityMapper.mapToDomain(fakeSingleChoiceEntityMap)
 
-        (1..count).map {
-            val singleChoiceAnswer = generateSingleChoicesAnswer()
-            val key = RandomString.make()
-            output[key] = singleChoiceAnswer
+        assertEquals(fakeSingleChoiceEntityMap.size, mappedAnswers.size)
+        for (key in fakeSingleChoiceEntityMap.keys){
+            assertEquals(fakeSingleChoiceEntityMap[key]?.id, mappedAnswers[key]?.id)
+            assertEquals(fakeSingleChoiceEntityMap[key]?.name, mappedAnswers[key]?.name)
         }
-        return output
     }
-
-    private fun generateSingleChoicesAnswerEntity() = SingleChoiceAnswerEntity(RandomString.make(), RandomString.make())
-
-    private fun generateFakeSingleChoiceAnswerEntityMap(questionCnt: Int, answerCnt: Int): HashMap<String, List<SingleChoiceAnswerEntity>>{
-        val output = HashMap<String, List<SingleChoiceAnswerEntity>>()
-
-        for (questionCntr in (1 .. questionCnt)){
-            val question = RandomString.make()
-            val answerList = mutableListOf<SingleChoiceAnswerEntity>()
-            for (answerCntr in (1 .. answerCnt)){
-                answerList.add(
-                    SingleChoiceAnswerEntity(RandomString.make(), RandomString.make())
-                )
-            }
-            output[question] = answerList
-        }
-
-        return output
-    }
-
 }

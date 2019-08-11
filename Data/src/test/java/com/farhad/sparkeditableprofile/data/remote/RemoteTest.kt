@@ -3,6 +3,8 @@ package com.farhad.sparkeditableprofile.data.remote
 import com.farhad.sparkeditableprofile.data.entity.*
 import com.farhad.sparkeditableprofile.data.remote.services.ProfileService
 import com.farhad.sparkeditableprofile.data.remote.services.QuestionService
+import com.farhad.sparkeditableprofile.data.testUtils.FakeLocation
+import com.farhad.sparkeditableprofile.data.testUtils.FakeSingleChoices
 import com.farhad.sparkeditableprofile.domain.model.SingleChoiceAnswer
 import io.reactivex.Observable
 import junit.framework.Assert.assertEquals
@@ -15,6 +17,7 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import java.io.File
+import kotlin.random.Random
 
 class RemoteTest {
     @Mock
@@ -77,7 +80,7 @@ class RemoteTest {
 
     @Test
     fun getLocations() {
-        val locationEntityList = generateFakeLocationList(100)
+        val locationEntityList = FakeLocation().generateFakeLocationList(100)
         Mockito.`when`(serviceGenerator.questionService()).thenReturn(questionService)
         Mockito.`when`(questionService.getLocations()).thenReturn(Observable.just(locationEntityList))
         val remote = Remote(serviceGenerator)
@@ -91,7 +94,7 @@ class RemoteTest {
     @Test
     fun getSingleChoiceAnswers(){
         val singleChoiceAnswerEntityMap
-                = generateFakeSingleChoiceAnswerEntityMap(10, 10)
+                = FakeSingleChoices().generateFakeSingleChoiceAnswerEntityListMap(10, 10)
         Mockito.`when`(serviceGenerator.questionService()).thenReturn(questionService)
         Mockito.`when`(questionService.getSingleChoiceAnswers())
             .thenReturn(Observable.just(singleChoiceAnswerEntityMap))
@@ -105,31 +108,14 @@ class RemoteTest {
         }.onComplete()
     }
 
-    private fun generateFakeSingleChoiceAnswerEntityMap(questionCnt: Int, answerCnt: Int): HashMap<String, List<SingleChoiceAnswerEntity>>{
-        val output = HashMap<String, List<SingleChoiceAnswerEntity>>()
+    @Test
+    fun getProfile(){
+        val remote = Remote(serviceGenerator)
+        val id = RandomString().nextString()
+        remote.getProfile(id)
 
-        for (questionCntr in (1 .. questionCnt)){
-            val question = RandomString.make()
-            val answerList = mutableListOf<SingleChoiceAnswerEntity>()
-            for (answerCntr in (1 .. answerCnt)){
-                answerList.add(
-                    SingleChoiceAnswerEntity(RandomString.make(), RandomString.make())
-                )
-            }
-            output[question] = answerList
-        }
-
-        return output
+        Mockito.verify(profileService).getProfile(id)
     }
-
-    private fun generateFakeLocationList(count: Int): List<LocationEntity> {
-        val output = mutableListOf<LocationEntity>()
-        (1..count).map { output.add(generateFakeLocationEntity()) }
-        return output
-    }
-
-    private fun generateFakeLocationEntity() =
-        LocationEntity(RandomString.make(), RandomString.make(), RandomString.make())
 
     fun <T> capture(argumentCaptor: ArgumentCaptor<T>): T = argumentCaptor.capture()
 
