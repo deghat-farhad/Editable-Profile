@@ -3,6 +3,7 @@ package com.farhad.sparkeditableprofile.updateProfile.viewModel
 import android.graphics.Bitmap
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.farhad.editableprofile.utils.SingleLiveEvent
 import com.farhad.sparkeditableprofile.domain.model.Location
 import com.farhad.sparkeditableprofile.domain.model.ProfilePicture
 import com.farhad.sparkeditableprofile.domain.model.RequestStatus
@@ -50,6 +51,7 @@ open class UpdateProfileViewModel @Inject constructor(
     open val questionLocationsStrings: MutableLiveData<List<String?>> by lazy { MutableLiveData<List<String?>>() }
     open val birthday: MutableLiveData<String> by lazy { MutableLiveData<String>() }
     open val profilePicture: MutableLiveData<Bitmap> by lazy { MutableLiveData<Bitmap>() }
+    open val profileRegistered: SingleLiveEvent<String> by lazy { SingleLiveEvent<String>() }
 
 
 
@@ -160,7 +162,7 @@ open class UpdateProfileViewModel @Inject constructor(
         val updateProfileObserver = object : DefaultObserver<RequestStatus>() {
             override fun onNext(it: RequestStatus) {
                 super.onNext(it)
-                println(profileItem.id)
+                profileRegistered.value = profileItem.id
                 profilePictureFile?.let {
                     uploadPicture(profileItem, it)
                 }

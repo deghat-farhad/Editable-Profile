@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation">
+
+    <fragment
+        android:id="@+id/fragUpdateProfile"
+        android:name="com.farhad.sparkeditableprofile.updateProfile.view.FragUpdateProfile"
+        android:label="frag_update_profile"
+        tools:layout="@layout/frag_update_profile" >
+        <action android:id="@+id/action_fragUpdateProfile_to_fragViewProfile"
+            app:popUpToInclusive="true"
+            app:popUpTo="@+id/fragUpdateProfile"/>
+    </fragment>
+    <fragment
+        android:id="@+id/fragViewProfile"
+        android:name="com.farhad.sparkeditableprofile.viewProfile.view.FragViewProfile"
+        android:label="frag_view_profile"
+        tools:layout="@layout/frag_view_profile" >
+        <action
+            android:id="@+id/action_fragViewProfile_to_fragUpdateProfile"
+            app:destination="@id/fragUpdateProfile"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+</navigation>

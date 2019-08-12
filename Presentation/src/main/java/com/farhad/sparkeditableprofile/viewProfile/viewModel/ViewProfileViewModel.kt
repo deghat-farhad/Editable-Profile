@@ -46,7 +46,9 @@ open class ViewProfileViewModel @Inject constructor(
                 this@ViewProfileViewModel.profileItem = profileItem
 
                 displayName.value = profileItem.displayName
-                birthday.value = formatter.format(profileItem.birthday)
+                profileItem.birthday?.let {
+                    birthday.value = formatter.format(profileItem.birthday)
+                }
                 height.value = profileItem.height.toString()
                 aboutMe.value = profileItem.aboutMe
                 setLiveLocation(profileItem.location)

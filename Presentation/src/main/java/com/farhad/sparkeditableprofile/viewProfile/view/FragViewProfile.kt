@@ -15,6 +15,11 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.Navigation
+import androidx.navigation.Navigation.findNavController
+import androidx.navigation.fragment.findNavController
+import com.farhad.sparkeditableprofile.PREFS_NAME
+import com.farhad.sparkeditableprofile.PROFILE_ID_KEY
 import com.farhad.sparkeditableprofile.R
 import com.farhad.sparkeditableprofile.di.DaggerViewModelComponent
 import com.farhad.sparkeditableprofile.di.ViewModelFactory
@@ -55,7 +60,12 @@ class FragViewProfile: Fragment() {
         }
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(ViewProfileViewModel::class.java)
         setObservers()
-        viewModel.getProfile("9VmW3YVQ6aw73lSTYOFtjlMLtNHBTj77X13PI6Lyo3Nr3RvxDWy167hluhNi9NG8")
+        context?.let{context ->
+            val settings = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val profileId: String = settings.getString(PROFILE_ID_KEY, "") ?: ""
+            if(profileId.isNotEmpty())
+                viewModel.getProfile(profileId)
+        }
     }
 
     private fun initiate(view:View){
@@ -96,7 +106,7 @@ class FragViewProfile: Fragment() {
         })
 
         viewModel.navigateToEditProfile.observe(this, Observer {
-            //todo: navigate to FragUpdateProfile
+            findNavController().navigate(R.id.action_fragViewProfile_to_fragUpdateProfile)
         })
     }
 

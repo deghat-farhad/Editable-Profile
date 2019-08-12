@@ -18,6 +18,7 @@ ext{
     auto_value_version = '1.6.5'
     androidx_core_test_version = '2.0.1'
     picasso_version = '2.71828'
+    navigation_Version = '2.0.0'
 }
 
 android {
@@ -85,4 +86,8 @@ dependencies {
 
     //picasso
     implementation "com.squareup.picasso:picasso:$picasso_version"
+
+    //Navigation
+    implementation "androidx.navigation:navigation-fragment-ktx:$navigation_Version"
+    implementation "androidx.navigation:navigation-ui-ktx:$navigation_Version"
 }
