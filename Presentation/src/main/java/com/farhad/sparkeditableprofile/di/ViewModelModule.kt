@@ -2,6 +2,7 @@ package com.farhad.sparkeditableprofile.di
 
 import androidx.lifecycle.ViewModel
 import com.farhad.sparkeditableprofile.updateProfile.viewModel.UpdateProfileViewModel
+import com.farhad.sparkeditableprofile.viewProfile.viewModel.ViewProfileViewModel
 import dagger.Binds
 import dagger.MapKey
 import dagger.Module
@@ -17,5 +18,10 @@ interface ViewModelModule {
     @Binds
     @IntoMap
     @ViewModelKey(UpdateProfileViewModel::class)
-    fun bindProfileEditViewModel(profileEditViewModel: UpdateProfileViewModel): ViewModel
+    fun bindUpdateProfileViewModel(updateProfileViewModel: UpdateProfileViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(ViewProfileViewModel::class)
+    fun bindViewProfileViewModel(viewProfileViewModel: ViewProfileViewModel): ViewModel
 }

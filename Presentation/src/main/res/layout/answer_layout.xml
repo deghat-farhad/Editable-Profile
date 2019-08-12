@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginTop="20dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+            android:id="@+id/imgViwSingleSelection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_info"
+            android:layout_marginRight="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_centerVertical="true"/>
+
+    <TextView
+            android:id="@+id/txtViwSingleSelectionHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextViewSingleSelectionHeaderTheme"
+            android:layout_toRightOf="@+id/imgViwSingleSelection"
+            android:layout_toEndOf="@+id/imgViwSingleSelection"
+            tools:text="@string/religion"/>
+
+    <TextView
+            android:id="@+id/txtViwSingleSelectionValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextViewSingleSelectionValueTheme"
+            android:layout_toRightOf="@+id/imgViwSingleSelection"
+            android:layout_toEndOf="@+id/imgViwSingleSelection"
+            android:layout_below="@+id/txtViwSingleSelectionHeader"
+            android:layout_marginTop="5dp"
+            tools:text="@string/religiousValue"/>
+
+</RelativeLayout>

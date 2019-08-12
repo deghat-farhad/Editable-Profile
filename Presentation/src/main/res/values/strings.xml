@@ -18,4 +18,6 @@
     <string name="aboutMe">hello my name is Farhad. I\'ve been developing android applications for 4 years.</string>
     <string name="birthday">25 Jun 1988</string>
     <string name="height">167</string>
+    <string name="religion">Religion</string>
+    <string name="religiousValue">None</string>
 </resources>
