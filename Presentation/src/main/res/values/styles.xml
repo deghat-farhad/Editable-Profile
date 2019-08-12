@@ -41,4 +41,36 @@
         <item name="android:padding">@dimen/autoCompleteTextViewPadding</item>
     </style>
 
+    <!-- Toolbar theme. -->
+    <style name="ToolBarTheme" parent="AppTheme">
+        <item name="android:textColorPrimary">@color/colorPrimary</item>
+        <item name="fontFamily">@font/rubik_bold</item>
+    </style>
+
+    <!-- TextView with first header style. -->
+    <style name="TextViewFirstHeaderTheme">
+        <item name="android:textSize">@dimen/firstHeaderTextSize</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="fontFamily">@font/rubik_black</item>
+    </style>
+
+    <!-- TextView with less important content theme. -->
+    <style name="TextViewLessImportantTheme">
+        <item name="android:textColor">@color/colorLightGray</item>
+        <item name="android:textSize">@dimen/lessImportantTextSize</item>
+    </style>
+
+    <!-- TextView with second header style. -->
+    <style name="TextViewSecondHeaderTheme">
+        <item name="android:textSize">@dimen/secondHeaderTextSize</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+    </style>
+
+    <!-- divider theme. -->
+    <style name="DividerTheme">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@color/colorDivider</item>
+    </style>
+
 </resources>

@@ -4,4 +4,8 @@
     <dimen name="buttonHorizontalPadding">25dp</dimen>
     <dimen name="buttonVerticalPadding">5dp</dimen>
     <dimen name="autoCompleteTextViewPadding">15dp</dimen>
+    <dimen name="firstHeaderTextSize">20sp</dimen>
+    <dimen name="lessImportantTextSize">14sp</dimen>
+    <dimen name="secondHeaderTextSize">16sp</dimen>
+    <color name="colorDivider">#afbec9</color>
 </resources>

@@ -9,6 +9,13 @@
     <string name="hintRealName">Real name*(Private Information)</string>
     <string name="hintHeight">Height*</string>
     <string name="hintOccupation">Occupation(Private Information)</string>
-    <string name="btnOK">Ok</string>
+    <string name="btnOK">OK</string>
     <string name="btnCancel">Cancel</string>
+    <string name="profile">Profile</string>
+    <string name="displayName">Farhad Deghat</string>
+    <string name="location">Shiraz, Iran</string>
+    <string name="editProfile">Edit profile</string>
+    <string name="aboutMe">hello my name is Farhad. I\'ve been developing android applications for 4 years.</string>
+    <string name="birthday">25 Jun 1988</string>
+    <string name="height">167</string>
 </resources>
