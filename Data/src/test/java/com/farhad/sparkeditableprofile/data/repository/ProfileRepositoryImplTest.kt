@@ -107,6 +107,29 @@ class ProfileRepositoryImplTest {
         }.onComplete()
     }
 
+    @Test
+    fun updateProfile() {
+        val fakeProfile = FakeProfile()
+        val profile = fakeProfile.getProfile()
+        val profileEntity = fakeProfile.getProfileEntity()
+        val message = RandomString().get()
+        val requestStatus = RequestStatus(true, message)
+        val requestStatusEntity = RequestStatusEntity(true, message)
+
+        Mockito.`when`(profileEntityMapper.mapToData(profile)).thenReturn(profileEntity)
+        Mockito.`when`(requestStatusEntityMapper.mapToDomain(requestStatusEntity)).thenReturn(requestStatus)
+        Mockito.`when`(remote.updateProfile(profileEntity)).thenReturn(Observable.just(requestStatusEntity))
+
+        val profileRepositoryImpl = getProfileRepositoryImpl()
+        val requestStatusObserver = profileRepositoryImpl.updateProfile(profile)
+
+        Mockito.verify(remote).updateProfile(profileEntity)
+
+        requestStatusObserver.test().assertValue {
+            it == requestStatus
+        }.onComplete()
+    }
+
     private fun getProfileRepositoryImpl(): ProfileRepositoryImpl {
         return ProfileRepositoryImpl(
             remote,

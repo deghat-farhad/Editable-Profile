@@ -1,5 +1,6 @@
 package com.farhad.sparkeditableprofile.data.repository
 
+import com.farhad.sparkeditableprofile.data.entity.ProfileEntity
 import com.farhad.sparkeditableprofile.data.mapper.ProfileEntityMapper
 import com.farhad.sparkeditableprofile.data.mapper.ProfilePictureEntityMapper
 import com.farhad.sparkeditableprofile.data.mapper.RequestStatusEntityMapper
@@ -30,5 +31,10 @@ class ProfileRepositoryImpl(
 
     override fun getProfile(userId: String): Observable<Profile> {
         return remote.getProfile(userId).map { profileEntityMapper.mapToDomain(it) }
+    }
+
+    override fun updateProfile(profile: Profile): Observable<RequestStatus> {
+        val profileEntity: ProfileEntity = profileEntityMapper.mapToData(profile)
+        return remote.updateProfile(profileEntity).map { requestStatusEntityMapper.mapToDomain(it) }
     }
 }

@@ -4,6 +4,7 @@ import com.farhad.sparkeditableprofile.data.entity.*
 import com.farhad.sparkeditableprofile.data.remote.services.ProfileService
 import com.farhad.sparkeditableprofile.data.remote.services.QuestionService
 import com.farhad.sparkeditableprofile.data.testUtils.FakeLocation
+import com.farhad.sparkeditableprofile.data.testUtils.FakeProfile
 import com.farhad.sparkeditableprofile.data.testUtils.FakeSingleChoices
 import com.farhad.sparkeditableprofile.domain.model.SingleChoiceAnswer
 import io.reactivex.Observable
@@ -115,6 +116,15 @@ class RemoteTest {
         remote.getProfile(id)
 
         Mockito.verify(profileService).getProfile(id)
+    }
+
+    @Test
+    fun updateProfile(){
+        val remote = Remote(serviceGenerator)
+        val profileEntity = FakeProfile().getProfileEntity()
+        remote.updateProfile(profileEntity)
+
+        Mockito.verify(profileService).updateProfile(profileEntity)
     }
 
     fun <T> capture(argumentCaptor: ArgumentCaptor<T>): T = argumentCaptor.capture()

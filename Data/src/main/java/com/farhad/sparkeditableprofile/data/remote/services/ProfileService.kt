@@ -19,4 +19,8 @@ interface ProfileService {
 
     @GET("user.php/{userId}")
     fun getProfile(@Path("userId") userId: String): Observable<ProfileEntity>
+
+    @PUT("user.php")
+    fun updateProfile(@Body profileEntity: ProfileEntity)
+            : Observable<RequestStatusEntity>
 }
