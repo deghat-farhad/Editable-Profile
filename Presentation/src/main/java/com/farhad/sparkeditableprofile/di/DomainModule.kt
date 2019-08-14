@@ -6,6 +6,7 @@ import com.farhad.sparkeditableprofile.domain.usecase.getLocations.GetLocations
 import com.farhad.sparkeditableprofile.domain.usecase.getProfile.GetProfile
 import com.farhad.sparkeditableprofile.domain.usecase.getSingleChoiceAnswers.GetSingleChoiceAnswers
 import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfile
+import com.farhad.sparkeditableprofile.domain.usecase.updateProfile.UpdateProfile
 import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.UploadProfilePicture
 import dagger.Module
 import dagger.Provides
@@ -16,6 +17,15 @@ import javax.inject.Named
 
 @Module
 class DomainModule {
+
+    @Provides
+    fun updateProfile(
+        profileRepository: ProfileRepository,
+        @Named("ioScheduler") ioScheduler: Scheduler,
+        @Named("mainThreadScheduler") mainThreadScheduler: Scheduler
+    ): UpdateProfile {
+        return UpdateProfile(ioScheduler, mainThreadScheduler, profileRepository)
+    }
 
     @Provides
     fun getProfile(

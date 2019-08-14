@@ -14,6 +14,8 @@ import com.farhad.sparkeditableprofile.domain.usecase.getLocations.GetLocations
 import com.farhad.sparkeditableprofile.domain.usecase.getSingleChoiceAnswers.GetSingleChoiceAnswers
 import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfile
 import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfileParams
+import com.farhad.sparkeditableprofile.domain.usecase.updateProfile.UpdateProfile
+import com.farhad.sparkeditableprofile.domain.usecase.updateProfile.UpdateProfileParams
 import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.UploadProfilePicture
 import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.UploadProfilePictureParams
 import com.farhad.sparkeditableprofile.mapper.LocationItemMapper
@@ -22,9 +24,12 @@ import com.farhad.sparkeditableprofile.mapper.SingleChoiceAnswerItemMapper
 import com.farhad.sparkeditableprofile.model.LocationItem
 import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
+import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
+import io.reactivex.schedulers.Schedulers
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -41,12 +46,15 @@ open class UpdateProfileViewModel @Inject constructor(
     private val registerProfile: RegisterProfile,
     private val profileItemMapper: ProfileItemMapper,
     private val uploadProfilePicture: UploadProfilePicture,
-    private val profileItem: ProfileItem?
+    var profileItem: ProfileItem?,
+    private val updateProfile: UpdateProfile,
+    private val profileItemDiff: ProfileItemDiff
 ): ViewModel() {
     private val bag = CompositeDisposable()
     lateinit var questionLocations: List<LocationItem>
     var newBirthDay: Date? = null
     var profilePictureFile: File? = null
+    private var itsAnUpdate = false
 
 
 
@@ -68,6 +76,7 @@ open class UpdateProfileViewModel @Inject constructor(
 
     init {
         profileItem?.let { profileItem ->
+            itsAnUpdate = true
             displayName.value = profileItem.displayName
             realName.value = profileItem.realName
             occupation.value = profileItem.occupation
@@ -176,10 +185,20 @@ open class UpdateProfileViewModel @Inject constructor(
         }
         profileItem.answers = newAnswers
         profileItem.birthday = newBirthDay
+
+        //there is no profile so we`re going to register one.
         if (this.profileItem == null)
             registerProfile(profileItem)
-        else
-            updateProfile()
+
+        //a profile exist so we try to update current profile if tehre is any changes
+        this.profileItem?.let{
+            if (profileItem != it) {
+                updateProfile(it, profileItem)
+            }
+            profilePictureFile?.let {file ->
+                uploadPicture(it, file)
+            }
+        }
     }
 
     private fun registerProfile(profileItem: ProfileItem) {
@@ -187,7 +206,9 @@ open class UpdateProfileViewModel @Inject constructor(
         val updateProfileObserver = object : DefaultObserver<RequestStatus>() {
             override fun onNext(it: RequestStatus) {
                 super.onNext(it)
-                profileRegistered.value = profileItem.id
+                if(profilePictureFile == null)
+                    profileRegistered.value = profileItem.id
+                else
                 profilePictureFile?.let {
                     uploadPicture(profileItem, it)
                 }
@@ -198,8 +219,19 @@ open class UpdateProfileViewModel @Inject constructor(
         registerProfile.execute(updateProfileObserver, params)?.addTo(bag)
     }
 
-    private fun updateProfile() {
-        profileUpdated.call()
+    private fun updateProfile(oldProfile: ProfileItem, newProfileItem: ProfileItem) {
+        val diffProfile = profileItemDiff.getDiff(oldProfile, newProfileItem)
+
+        val updateProfileObserver = object : DefaultObserver<RequestStatus>() {
+            override fun onComplete() {
+                super.onComplete()
+                if(profilePictureFile == null)
+                    this@UpdateProfileViewModel.profileUpdated.call()
+            }
+        }
+
+        val params = UpdateProfileParams(profileItemMapper.mapToDomain(diffProfile))
+        updateProfile.execute(updateProfileObserver, params)
     }
 
     private fun randomId(): String {
@@ -215,7 +247,10 @@ open class UpdateProfileViewModel @Inject constructor(
         val uploadProfilePictureObserver = object: DefaultObserver<ProfilePicture>(){
             override fun onNext(it: ProfilePicture) {
                 super.onNext(it)
-                println(it.url)
+                if(itsAnUpdate)
+                    this@UpdateProfileViewModel.profileUpdated.call()
+                else
+                    profileRegistered.value = (profileItem.id)
             }
         }
         val params = UploadProfilePictureParams(profilePicture, profileItemMapper.mapToDomain(profileItem))
@@ -246,7 +281,8 @@ open class UpdateProfileViewModel @Inject constructor(
                 }
 
             }
-            Picasso.get().load(notNullProfilePictureUrl).into(target)
+            Picasso.get().load(notNullProfilePictureUrl)
+                .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE).into(target)
         }
     }
 }

@@ -13,6 +13,7 @@ import com.farhad.sparkeditableprofile.mapper.ProfileItemMapper
 import com.farhad.sparkeditableprofile.model.LocationItem
 import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
+import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 import java.text.SimpleDateFormat
 import java.util.*
@@ -36,8 +37,6 @@ open class ViewProfileViewModel @Inject constructor(
     private var formatter = SimpleDateFormat("d MMM yyyy", Locale.US)
 
     open fun getProfile(id: String) {
-        //val id = "9VmW3YVQ6aw73lSTYOFtjlMLtNHBTj77X13PI6Lyo3Nr3RvxDWy167hluhNi9NG8"
-
         val observable = object : DefaultObserver<Profile>() {
             override fun onNext(it: Profile) {
                 super.onNext(it)
@@ -85,7 +84,8 @@ open class ViewProfileViewModel @Inject constructor(
                     bitmap?.let { profilePicture.value = it }
                 }
             }
-            Picasso.get().load(notNullProfilePictureUrl).into(target)
+            Picasso.get().load(notNullProfilePictureUrl)
+                .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE).into(target)
         }
     }
 

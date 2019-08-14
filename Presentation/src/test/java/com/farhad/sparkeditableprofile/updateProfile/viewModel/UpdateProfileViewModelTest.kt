@@ -10,6 +10,8 @@ import com.farhad.sparkeditableprofile.domain.usecase.getLocations.GetLocations
 import com.farhad.sparkeditableprofile.domain.usecase.getSingleChoiceAnswers.GetSingleChoiceAnswers
 import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfile
 import com.farhad.sparkeditableprofile.domain.usecase.registerProfile.RegisterProfileParams
+import com.farhad.sparkeditableprofile.domain.usecase.updateProfile.UpdateProfile
+import com.farhad.sparkeditableprofile.domain.usecase.updateProfile.UpdateProfileParams
 import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.UploadProfilePicture
 import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.UploadProfilePictureParams
 import com.farhad.sparkeditableprofile.mapper.LocationItemMapper
@@ -61,6 +63,12 @@ class UpdateProfileViewModelTest {
 
     @Mock
     lateinit var uploadProfilePicture: UploadProfilePicture
+
+    @Mock
+    lateinit var profileItemDiff: ProfileItemDiff
+
+    @Mock
+    lateinit var updateProfile: UpdateProfile
 
     @get:Rule
     val rule = InstantTaskExecutorRule()
@@ -246,6 +254,65 @@ class UpdateProfileViewModelTest {
             assertEquals(profileItem.answers[question]?.name, updateProfileViewModel.answers.value?.get(question))
         }
     }
+
+    @Test
+    fun updateProfile(){
+        val locationItems = FakeLocations().generateLocationItemList(100).toMutableList()
+        val singleChoiceItems = FakeSingleChoices().generateFakeSingleChoiceAnswerItemListMap(10, 8)
+        val profile = FakeProfile(locationItems, singleChoiceItems).getProfile()
+        val diffFakeProfile = FakeProfile(locationItems, singleChoiceItems)
+        val diffProfile = diffFakeProfile.getProfile()
+        val diffProfileItem = diffFakeProfile.getProfileItem()
+
+        val answers = HashMap<String, String>()
+        for (question in profile.answers.keys){
+            profile.answers[question]?.let {
+                answers[question] = it.name!!
+            }
+        }
+
+        Mockito.`when`(profileItemMapper.mapToDomain(any()))
+            .thenReturn(diffProfile)
+
+        Mockito.`when`(profileItemDiff.getDiff(any(), any())).thenReturn(diffProfileItem)
+
+        val updateProfileViewModel = updateProfileViewModel(null)
+
+        updateProfileViewModel.newBirthDay = profile.birthday
+        updateProfileViewModel.questionLocations = locationItems
+        updateProfileViewModel.questionSingleChoices.value = singleChoiceItems
+        updateProfileViewModel.questionLocationsStrings.value = locationItems.map { it.city }
+        updateProfileViewModel.profileItem = FakeProfile(locationItems, singleChoiceItems).getProfileItem()
+
+        updateProfileViewModel.submit(
+            profile.displayName.toString(),
+            profile.realName.toString(),
+            profile.occupation.toString(),
+            profile.aboutMe.toString(),
+            profile.location?.city.toString(),
+            profile.height!!,
+            answers)
+
+        val captor:ArgumentCaptor<UpdateProfileParams> =  forClass(UpdateProfileParams::class.java)
+
+        Mockito.verify(updateProfile).execute(any(), capture(captor))
+
+        assertEquals(diffProfile.displayName, captor.value.profile.displayName)
+        assertEquals(diffProfile.realName, captor.value.profile.realName)
+        assertEquals(diffProfile.occupation, captor.value.profile.occupation)
+        assertEquals(diffProfile.aboutMe, captor.value.profile.aboutMe)
+        assertEquals(diffProfile.height, captor.value.profile.height)
+
+        assertEquals(diffProfile.location?.lat, captor.value.profile.location?.lat)
+        assertEquals(diffProfile.location?.lon, captor.value.profile.location?.lon)
+        assertEquals(diffProfile.location?.city, captor.value.profile.location?.city)
+
+        for(question in diffProfile.answers.keys){
+            assertEquals(diffProfile.answers[question]?.id, captor.value.profile.answers[question]?.id)
+            assertEquals(diffProfile.answers[question]?.name, captor.value.profile.answers[question]?.name)
+        }
+    }
+
     private fun updateProfileViewModel(profileItem: ProfileItem?) = UpdateProfileViewModel(
         singleChoiceAnswerItemMapper,
         locationItemMapper,
@@ -254,7 +321,9 @@ class UpdateProfileViewModelTest {
         registerProfile,
         profileItemMapper,
         uploadProfilePicture,
-        profileItem
+        profileItem,
+        updateProfile,
+        profileItemDiff
     )
 
     private fun <T> any(): T {
