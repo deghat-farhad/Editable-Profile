@@ -1,6 +1,7 @@
 package com.farhad.sparkeditableprofile.updateProfile.viewModel
 
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.farhad.editableprofile.utils.SingleLiveEvent
@@ -21,6 +22,7 @@ import com.farhad.sparkeditableprofile.mapper.SingleChoiceAnswerItemMapper
 import com.farhad.sparkeditableprofile.model.LocationItem
 import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
+import com.squareup.picasso.Picasso
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
 import java.io.ByteArrayOutputStream
@@ -38,7 +40,8 @@ open class UpdateProfileViewModel @Inject constructor(
     private val getLocations: GetLocations,
     private val registerProfile: RegisterProfile,
     private val profileItemMapper: ProfileItemMapper,
-    private val uploadProfilePicture: UploadProfilePicture
+    private val uploadProfilePicture: UploadProfilePicture,
+    private val profileItem: ProfileItem?
 ): ViewModel() {
     private val bag = CompositeDisposable()
     lateinit var questionLocations: List<LocationItem>
@@ -52,11 +55,30 @@ open class UpdateProfileViewModel @Inject constructor(
     open val birthday: MutableLiveData<String> by lazy { MutableLiveData<String>() }
     open val profilePicture: MutableLiveData<Bitmap> by lazy { MutableLiveData<Bitmap>() }
     open val profileRegistered: SingleLiveEvent<String> by lazy { SingleLiveEvent<String>() }
+    open val profileUpdated: SingleLiveEvent<Unit> by lazy { SingleLiveEvent<Unit>() }
 
-
+    open val displayName: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+    open val realName: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+    open val occupation: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+    open val height: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+    open val aboutMe: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+    open val location: MutableLiveData<String> by lazy { MutableLiveData<String>() }
+    open val answers: MutableLiveData<HashMap<String, String>> by lazy { MutableLiveData<HashMap<String, String>>() }
 
 
     init {
+        profileItem?.let { profileItem ->
+            displayName.value = profileItem.displayName
+            realName.value = profileItem.realName
+            occupation.value = profileItem.occupation
+            profileItem.birthday?.let {
+                birthday.value = formatDate(profileItem.birthday)
+            }
+            height.value = profileItem.height.toString()
+            aboutMe.value = profileItem.aboutMe
+            setLiveLocation(profileItem.location)
+            setLiveProfilePicture(profileItem.profilePicture?.url)
+        }
         getSingleChoiceQuestions()
         getLocations()
     }
@@ -66,6 +88,7 @@ open class UpdateProfileViewModel @Inject constructor(
             override fun onNext(it: HashMap<String, List<SingleChoiceAnswer>>) {
                 super.onNext(it)
                 questionSingleChoices.value = singleChoiceAnswerItemMapper.mapListHashMapToPresentation(it)
+                profileItem?.let { setLiveAnswers(it.answers) }
             }
         }
         getSingleChoiceAnswers.execute(getSingleChoiceQuestionObserver, Unit)
@@ -153,8 +176,10 @@ open class UpdateProfileViewModel @Inject constructor(
         }
         profileItem.answers = newAnswers
         profileItem.birthday = newBirthDay
-
-        registerProfile(profileItem)
+        if (this.profileItem == null)
+            registerProfile(profileItem)
+        else
+            updateProfile()
     }
 
     private fun registerProfile(profileItem: ProfileItem) {
@@ -171,6 +196,10 @@ open class UpdateProfileViewModel @Inject constructor(
 
         val params = RegisterProfileParams(profileItemMapper.mapToDomain(profileItem))
         registerProfile.execute(updateProfileObserver, params)?.addTo(bag)
+    }
+
+    private fun updateProfile() {
+        profileUpdated.call()
     }
 
     private fun randomId(): String {
@@ -191,5 +220,33 @@ open class UpdateProfileViewModel @Inject constructor(
         }
         val params = UploadProfilePictureParams(profilePicture, profileItemMapper.mapToDomain(profileItem))
         uploadProfilePicture.execute(uploadProfilePictureObserver, params)
+    }
+
+    private fun setLiveLocation(locationItem: LocationItem?) {
+        locationItem?.let { notNullLocationItem -> this.location.value = notNullLocationItem.city }
+    }
+
+    open fun setLiveAnswers(answers: HashMap<String, SingleChoiceAnswerItem>) {
+        val answersTmp: HashMap<String, String> = hashMapOf()
+        for (profileAnswerKey in answers.keys) {
+            answers[profileAnswerKey]?.name?.let { profileAnswerName ->
+                answersTmp[profileAnswerKey] = profileAnswerName
+            }
+        }
+        this.answers.value = answersTmp
+    }
+
+    private fun setLiveProfilePicture(profilePictureUrl: String?) {
+        profilePictureUrl?.let { notNullProfilePictureUrl ->
+            val target = object : com.squareup.picasso.Target {
+                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+                override fun onBitmapFailed(e: Exception?, errorDrawable: Drawable?) {}
+                override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                    bitmap?.let { profilePicture.value = it }
+                }
+
+            }
+            Picasso.get().load(notNullProfilePictureUrl).into(target)
+        }
     }
 }

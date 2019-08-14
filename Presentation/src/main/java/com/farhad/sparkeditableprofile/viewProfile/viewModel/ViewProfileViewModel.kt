@@ -90,6 +90,6 @@ open class ViewProfileViewModel @Inject constructor(
     }
 
     fun updateProfile(){
-        navigateToEditProfile.call()
+        navigateToEditProfile.value = profileItem
     }
 }

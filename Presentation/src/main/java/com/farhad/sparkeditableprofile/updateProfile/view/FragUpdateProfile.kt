@@ -1,11 +1,9 @@
 package com.farhad.sparkeditableprofile.updateProfile.view
 
-import android.Manifest
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
@@ -19,14 +17,15 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.navigation.PopUpToBuilder
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.navigation.navOptions
 import com.farhad.sparkeditableprofile.PREFS_NAME
 import com.farhad.sparkeditableprofile.PROFILE_ID_KEY
 import com.farhad.sparkeditableprofile.R
 import com.farhad.sparkeditableprofile.di.DaggerViewModelComponent
 import com.farhad.sparkeditableprofile.di.ViewModelFactory
+import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
 import com.farhad.sparkeditableprofile.updateProfile.viewModel.UpdateProfileViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -39,6 +38,9 @@ import kotlin.math.min
 
 const val PICK_IMAGE = 1
 class FragUpdateProfile: Fragment() {
+
+    val args: FragUpdateProfileArgs by navArgs()
+
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
@@ -74,15 +76,20 @@ class FragUpdateProfile: Fragment() {
 
         initViews(view)
         if (!::viewModelFactory.isInitialized) {
-            injectThisToDagger()
+            try {
+                injectThisToDagger(args.profile)
+            } catch (e: Exception) {
+                injectThisToDagger(null)
+            }
         }
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(UpdateProfileViewModel::class.java)
         setObservers()
     }
 
-    private fun injectThisToDagger() {
+    private fun injectThisToDagger(profile: ProfileItem?) {
         DaggerViewModelComponent
             .builder()
+            .profileItem(profile)
             .build()
             .injectFragment(this)
     }
@@ -131,6 +138,23 @@ class FragUpdateProfile: Fragment() {
                 editor.apply()
             }
             navigateToViewProfile()
+        })
+        viewModel.profileUpdated.observe(this, Observer {
+            findNavController().navigate(R.id.action_fragUpdateProfile_to_fragViewProfile)
+        })
+
+        viewModel.displayName.observe(this, Observer { txtInputEdtTxtDisplayName.setText(it) })
+        viewModel.realName.observe(this, Observer { txtInputEdtTxtRealName.setText(it) })
+        viewModel.occupation.observe(this, Observer { txtInputEdtTxtOccupation.setText(it) })
+        viewModel.height.observe(this, Observer { })
+        viewModel.aboutMe.observe(this, Observer { txtInputEdtTxtAboutMe.setText(it) })
+        viewModel.location.observe(this, Observer { autoCompleteTxtViewLocation.setText(it) })
+        viewModel.height.observe(this, Observer { txtInputEdtTxtHeight.setText(it) })
+
+        viewModel.answers.observe(this, Observer {
+            for (question in it.keys) {
+                singleChoiceTextInputs[question]?.setText(it[question])
+            }
         })
     }
 

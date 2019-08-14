@@ -16,7 +16,9 @@ import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
+import com.farhad.editableprofile.utils.SingleLiveEvent
 import com.farhad.sparkeditableprofile.R
 import com.farhad.sparkeditableprofile.di.ViewModelFactory
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
@@ -48,6 +50,17 @@ class FragUpdateProfileTest {
     private val liveBirthday = MutableLiveData<String>()
     private val liveProfilePicture = MutableLiveData<Bitmap>()
 
+    private val displayName: MutableLiveData<String> = MutableLiveData<String>()
+    private val realName: MutableLiveData<String> = MutableLiveData<String>()
+    private val occupation: MutableLiveData<String> = MutableLiveData<String>()
+    private val height: MutableLiveData<String> = MutableLiveData<String>()
+    private val aboutMe: MutableLiveData<String> = MutableLiveData<String>()
+    private val location: MutableLiveData<String> = MutableLiveData<String>()
+    private val answers: MutableLiveData<java.util.HashMap<String, String>> = MutableLiveData<java.util.HashMap<String, String>>()
+
+    private val profileRegistered: SingleLiveEvent<String> = SingleLiveEvent<String>()
+    private val profileUpdated: SingleLiveEvent<Unit> = SingleLiveEvent<Unit>()
+
 
     @Mock
     lateinit var updateProfileViewModel: UpdateProfileViewModel
@@ -68,6 +81,16 @@ class FragUpdateProfileTest {
         Mockito.`when`(updateProfileViewModel.questionLocationsStrings).thenReturn(liveLocationList)
         Mockito.`when`(updateProfileViewModel.birthday).thenReturn(liveBirthday)
         Mockito.`when`(updateProfileViewModel.profilePicture).thenReturn(liveProfilePicture)
+
+        Mockito.`when`(updateProfileViewModel.displayName).thenReturn(displayName)
+        Mockito.`when`(updateProfileViewModel.realName).thenReturn(realName)
+        Mockito.`when`(updateProfileViewModel.height).thenReturn(height)
+        Mockito.`when`(updateProfileViewModel.occupation).thenReturn(occupation)
+        Mockito.`when`(updateProfileViewModel.location).thenReturn(location)
+        Mockito.`when`(updateProfileViewModel.aboutMe).thenReturn(aboutMe)
+        Mockito.`when`(updateProfileViewModel.answers).thenReturn(answers)
+        Mockito.`when`(updateProfileViewModel.profileRegistered).thenReturn(profileRegistered)
+        Mockito.`when`(updateProfileViewModel.profileUpdated).thenReturn(profileUpdated)
     }
 
     @Test
@@ -202,6 +225,54 @@ class FragUpdateProfileTest {
         onView(withId(R.id.btnSubmit)).perform(scrollTo(), click())
 
         Mockito.verify(updateProfileViewModel).submit(displayName, realName, occupation, aboutMe, city, height, answers)
+
+    }
+
+    @Test
+    fun ObserversTest() {
+
+        val displayName = RandomString().get()
+        val height = RandomString().get()
+        val aboutMe = RandomString().get()
+        val location = RandomString().get()
+        val realName = RandomString().get()
+        val occupation = RandomString().get()
+        val answersMap = FakeSingleChoices().generateFakeSingleChoiceAnswerItemListMap(10, 8)
+        val answers = java.util.HashMap<String, String>()
+        for (key in answersMap.keys) {
+            answersMap[key]?.let {
+                val selectIndex = Random.nextInt(it.size)
+                it[selectIndex].name?.let { answer -> answers[key] = answer }
+            }
+        }
+
+        runOnUiThread {
+            this.liveSingleChoiceAnswersMap.value = answersMap
+            this.displayName.value = displayName
+            this.height.value = height
+            this.aboutMe.value = aboutMe
+            this.location.value = location
+            this.realName.value = realName
+            this.occupation.value = occupation
+            this.answers.value = answers
+        }
+
+        onView(withId(R.id.txtInputEdtTxtDisplayName)).check(matches(withText(displayName)))
+        onView(withId(R.id.txtInputEdtTxtHeight)).check(matches(withText(height)))
+        onView(withId(R.id.txtInputEdtTxtAboutMe)).check(matches(withText(aboutMe)))
+        onView(withId(R.id.autoCompleteTxtViewLocation)).check(matches(withText(location)))
+        onView(withId(R.id.txtInputEdtTxtRealName)).check(matches(withText(realName)))
+        onView(withId(R.id.txtInputEdtTxtOccupation)).check(matches(withText(occupation)))
+
+        for (key in answersMap.keys) {
+            onView(withHint(key))
+                .check(matches(withText(answers[key])))
+                .perform(scrollTo())
+                .perform(click())
+            onView(withText(answers[key]))
+                .check(matches(isChecked()))
+            onView(withText("CANCEL")).perform(click())
+        }
 
     }
 

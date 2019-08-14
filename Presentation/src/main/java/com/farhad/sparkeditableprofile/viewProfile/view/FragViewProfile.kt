@@ -15,8 +15,6 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.navigation.Navigation
-import androidx.navigation.Navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.farhad.sparkeditableprofile.PREFS_NAME
 import com.farhad.sparkeditableprofile.PROFILE_ID_KEY
@@ -27,7 +25,7 @@ import com.farhad.sparkeditableprofile.viewProfile.viewModel.ViewProfileViewMode
 import javax.inject.Inject
 import kotlin.math.min
 
-class FragViewProfile: Fragment() {
+class FragViewProfile : Fragment() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
@@ -53,6 +51,7 @@ class FragViewProfile: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         initiate(view)
 
         if (!::viewModelFactory.isInitialized) {
@@ -86,6 +85,7 @@ class FragViewProfile: Fragment() {
     private fun injectThisToDagger() {
         DaggerViewModelComponent
             .builder()
+            .profileItem(null)
             .build()
             .injectFragment(this)
     }
@@ -106,7 +106,9 @@ class FragViewProfile: Fragment() {
         })
 
         viewModel.navigateToEditProfile.observe(this, Observer {
-            findNavController().navigate(R.id.action_fragViewProfile_to_fragUpdateProfile)
+            val action = FragViewProfileDirections.actionFragViewProfileToFragUpdateProfile(it)
+
+            findNavController().navigate(action)
         })
     }
 

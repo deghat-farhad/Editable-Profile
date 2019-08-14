@@ -28,8 +28,8 @@ class FakeProfile(
     val height = Random.nextInt(100..180)
     val selectedAnswers = HashMap<String, SingleChoiceAnswer>()
     val selectedAnswerItems = HashMap<String, SingleChoiceAnswerItem>()
-    val profilePicture = ProfilePicture("url/of/profile/pic")
-    val profilePictureItem = ProfilePictureItem("url/of/profile/pic")
+    val profilePicture = ProfilePicture(null)
+    val profilePictureItem = ProfilePictureItem(null)
     val birthDay = Date(0)
 
     init {

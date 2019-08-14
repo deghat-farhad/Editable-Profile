@@ -3,6 +3,7 @@ package com.farhad.sparkeditableprofile.updateProfile.viewModel
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import com.farhad.sparkeditableprofile.domain.model.*
 import com.farhad.sparkeditableprofile.domain.usecase.base.DefaultObserver
 import com.farhad.sparkeditableprofile.domain.usecase.getLocations.GetLocations
@@ -14,6 +15,7 @@ import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.Uploa
 import com.farhad.sparkeditableprofile.mapper.LocationItemMapper
 import com.farhad.sparkeditableprofile.mapper.ProfileItemMapper
 import com.farhad.sparkeditableprofile.mapper.SingleChoiceAnswerItemMapper
+import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.testUtils.FakeLocations
 import com.farhad.sparkeditableprofile.testUtils.FakeProfile
 import com.farhad.sparkeditableprofile.testUtils.FakeSingleChoices
@@ -91,7 +93,7 @@ class UpdateProfileViewModelTest {
 
         Mockito.`when`(singleChoiceAnswerItemMapper.mapListHashMapToPresentation(singleChoices))
             .thenReturn(singleChoiceItems)
-        val updateProfileViewModel = updateProfileViewModel()
+        val updateProfileViewModel = updateProfileViewModel(null)
 
         assertEquals(singleChoiceItems, updateProfileViewModel.questionSingleChoices.value)
     }
@@ -118,7 +120,7 @@ class UpdateProfileViewModelTest {
         Mockito.`when`(locationItemMapper.mapToPresentation(locations))
             .thenReturn(locationItems)
 
-        val updateProfileViewModel = updateProfileViewModel()
+        val updateProfileViewModel = updateProfileViewModel(null)
 
         assertEquals(locationItems.map { it.city }, updateProfileViewModel.questionLocationsStrings.value)
     }
@@ -130,7 +132,7 @@ class UpdateProfileViewModelTest {
         val month = Random.nextInt(0..11)
         val day = Random.nextInt(1..30)
 
-        val updateProfileViewModel = updateProfileViewModel()
+        val updateProfileViewModel = updateProfileViewModel(null)
 
         updateProfileViewModel.setNewBirthday(year, month, day)
 
@@ -142,7 +144,7 @@ class UpdateProfileViewModelTest {
         val bmp = mock(Bitmap::class.java)
         val path = "cacheDir"
 
-        val updateProfileViewModel = updateProfileViewModel()
+        val updateProfileViewModel = updateProfileViewModel(null)
 
         updateProfileViewModel.setProfilePicture(bmp, path)
 
@@ -165,7 +167,7 @@ class UpdateProfileViewModelTest {
         Mockito.`when`(profileItemMapper.mapToDomain(any()))
             .thenReturn(profile)
 
-        val updateProfileViewModel = updateProfileViewModel()
+        val updateProfileViewModel = updateProfileViewModel(null)
 
         updateProfileViewModel.newBirthDay = profile.birthday
         updateProfileViewModel.questionLocations = locationItems
@@ -213,7 +215,7 @@ class UpdateProfileViewModelTest {
 
         Mockito.`when`(profileItemMapper.mapToDomain(any()))
             .thenReturn(profile)
-        val updateProfileViewModel = updateProfileViewModel()
+        val updateProfileViewModel = updateProfileViewModel(null)
 
         updateProfileViewModel.uploadPicture(profileItem, profilePicture)
 
@@ -225,14 +227,34 @@ class UpdateProfileViewModelTest {
         assertEquals(profilePicture, captor.value.picture)
     }
 
-    private fun updateProfileViewModel() = UpdateProfileViewModel(
+    @Test
+    fun testWhenThereIsAProfileItem(){
+        val locationItems = FakeLocations().generateLocationItemList(100).toMutableList()
+        val singleChoiceItems = FakeSingleChoices().generateFakeSingleChoiceAnswerItemListMap(10, 8)
+        val profileItem = FakeProfile(locationItems, singleChoiceItems).getProfileItem()
+
+        val updateProfileViewModel = updateProfileViewModel(profileItem)
+        updateProfileViewModel.setLiveAnswers(profileItem.answers)
+
+        assertEquals(profileItem.displayName, updateProfileViewModel.displayName.value)
+        assertEquals(profileItem.realName, updateProfileViewModel.realName.value)
+        assertEquals(profileItem.occupation, updateProfileViewModel.occupation.value)
+        assertEquals(profileItem.height.toString(), updateProfileViewModel.height.value)
+        assertEquals(profileItem.aboutMe, updateProfileViewModel.aboutMe.value)
+        assertEquals(profileItem.location?.city, updateProfileViewModel.location.value)
+        for(question in profileItem.answers.keys){
+            assertEquals(profileItem.answers[question]?.name, updateProfileViewModel.answers.value?.get(question))
+        }
+    }
+    private fun updateProfileViewModel(profileItem: ProfileItem?) = UpdateProfileViewModel(
         singleChoiceAnswerItemMapper,
         locationItemMapper,
         getSingleChoiceAnswers,
         getLocations,
         registerProfile,
         profileItemMapper,
-        uploadProfilePicture
+        uploadProfilePicture,
+        profileItem
     )
 
     private fun <T> any(): T {
