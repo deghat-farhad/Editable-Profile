@@ -21,4 +21,7 @@
     <string name="religion">Religion</string>
     <string name="religiousValue">None</string>
     <string name="submitting">submitting profile …</string>
+    <string name="emptyIsNotAllowed">This is a required field</string>
+    <string name="charactersNotAllowed">Some characters are not allowed</string>
+    <string name="tooLongError">It\'s too long</string>
 </resources>

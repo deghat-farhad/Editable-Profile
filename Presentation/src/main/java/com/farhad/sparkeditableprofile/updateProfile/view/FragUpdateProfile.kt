@@ -32,13 +32,18 @@ import com.farhad.sparkeditableprofile.updateProfile.viewModel.UpdateProfileView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.mobsandgeeks.saripaar.ValidationError
+import com.mobsandgeeks.saripaar.annotation.Length
+import com.mobsandgeeks.saripaar.annotation.NotEmpty
+import com.mobsandgeeks.saripaar.annotation.Pattern
 import java.util.*
 import javax.inject.Inject
+import com.mobsandgeeks.saripaar.Validator
 import kotlin.collections.HashMap
 import kotlin.math.min
 
 const val PICK_IMAGE = 1
-class FragUpdateProfile: Fragment() {
+class FragUpdateProfile: Fragment(), Validator.ValidationListener {
 
     val args: FragUpdateProfileArgs by navArgs()
 
@@ -50,14 +55,36 @@ class FragUpdateProfile: Fragment() {
     private lateinit var singleChoiceItemsContainer: LinearLayout
     private var singleChoiceTextInputs = HashMap<String, TextInputEditText>()
     private lateinit var autoCompleteTxtViewLocation: AutoCompleteTextView
-    private lateinit var txtInputEdtTxtBirthday: TextInputEditText
     private lateinit var imgViewEditProfilePic: ImageView
     private lateinit var btnAddProfilePic: ImageButton
     private lateinit var btnSubmit: Button
+    private lateinit var listViewsWithFailedValidation: MutableList<View>
+    private lateinit var validator: Validator
+    private var isUpdateView = false
+
+    @NotEmpty(trim = true, messageResId = R.string.emptyIsNotAllowed)
+    private lateinit var txtInputEdtTxtBirthday: TextInputEditText
+
+    @NotEmpty(trim = true, messageResId = R.string.emptyIsNotAllowed)
+    @Pattern(regex = "^|[A-Za-z0-9._\\-\\s]+", messageResId = R.string.charactersNotAllowed)
+    @Length(max = 256, messageResId = R.string.tooLongError)
     private lateinit var txtInputEdtTxtDisplayName: TextInputEditText
+
+    @Pattern(regex = "^|[A-Za-z0-9!?()@#\$&()'.,_\\-\\s]+", messageResId = R.string.charactersNotAllowed)
+    @Length(max = 5000, messageResId = R.string.tooLongError)
     private lateinit var txtInputEdtTxtAboutMe: TextInputEditText
+
+    @NotEmpty(trim = true, messageResId = R.string.emptyIsNotAllowed)
+    @Pattern(regex = "^|[A-Za-z\\s]+", messageResId = R.string.charactersNotAllowed)
+    @Length(max = 256, messageResId = R.string.tooLongError)
     private lateinit var txtInputEdtTxtRealName: TextInputEditText
+
+    @Pattern(regex = "^|[A-Za-z0-9!?()@#\$&()'.,_\\-\\s]+", messageResId = R.string.charactersNotAllowed)
+    @Length(max = 256, messageResId = R.string.tooLongError)
     private lateinit var txtInputEdtTxtOccupation: TextInputEditText
+
+    @NotEmpty(trim = true, messageResId = R.string.emptyIsNotAllowed)
+    @Length(max = 3, messageResId = R.string.tooLongError)
     private lateinit var txtInputEdtTxtHeight: TextInputEditText
 
 
@@ -75,14 +102,15 @@ class FragUpdateProfile: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initViews(view)
         if (!::viewModelFactory.isInitialized) {
             try {
                 injectThisToDagger(args.profile)
+                isUpdateView = true
             } catch (e: Exception) {
                 injectThisToDagger(null)
             }
         }
+        initViews(view)
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(UpdateProfileViewModel::class.java)
         setObservers()
     }
@@ -96,6 +124,8 @@ class FragUpdateProfile: Fragment() {
     }
 
     private fun initViews(fragContainer: View) {
+        validator = Validator(this)
+        validator.setValidationListener(this)
         singleChoiceItemsContainer = fragContainer.findViewById(R.id.singleChoiceItemsContainer)
         autoCompleteTxtViewLocation =
             fragContainer.findViewById(R.id.autoCompleteTxtViewLocation) as AutoCompleteTextView
@@ -109,10 +139,20 @@ class FragUpdateProfile: Fragment() {
         txtInputEdtTxtOccupation = fragContainer.findViewById(R.id.txtInputEdtTxtOccupation)
         txtInputEdtTxtHeight = fragContainer.findViewById(R.id.txtInputEdtTxtHeight)
 
+
         txtInputEdtTxtBirthday.setOnClickListener { displayDatePicker() }
         btnAddProfilePic.setOnClickListener { pickImage() }
-        btnSubmit.setOnClickListener { submit() }
+        btnSubmit.setOnClickListener {
+            if (::listViewsWithFailedValidation.isInitialized && listViewsWithFailedValidation.size > 0)
+                resetAllErrors()
+            validator.validate()
+        }
         setToolbarTitle()
+
+        if (isUpdateView) {
+            txtInputEdtTxtHeight.isFocusable = false
+            txtInputEdtTxtHeight.isEnabled = false
+        }
     }
 
     private fun setObservers() {
@@ -219,6 +259,7 @@ class FragUpdateProfile: Fragment() {
         }
             .setTitle(title)
             .setPositiveButton(getString(R.string.btnOK)) { dialog, which ->
+                if(innerSelectedItem > 0)
                 singleChoiceTextInputs[title]?.setText(answers[innerSelectedItem])
             }
             .setNegativeButton(getString(R.string.btnCancel)) { dialog, which -> }
@@ -297,6 +338,30 @@ class FragUpdateProfile: Fragment() {
             }
         }
         viewModel.submit(displayName, realName, occupation, aboutMe, city, height, answers)
+    }
+
+    override fun onValidationSucceeded() {
+        submit()
+    }
+
+    override fun onValidationFailed(errors: MutableList<ValidationError>?) {
+        listViewsWithFailedValidation = mutableListOf()
+        for (error in errors!!) {
+            val view = error.view
+            val viewParent = view.parent.parent
+            if (viewParent is TextInputLayout) {
+                listViewsWithFailedValidation.add(viewParent)
+                val message = error.getCollatedErrorMessage(context)
+                viewParent.error = message
+            }
+        }
+    }
+
+    private fun resetAllErrors() {
+        for (view in listViewsWithFailedValidation) {
+            if (view is TextInputLayout)
+                view.error = null
+        }
     }
 }
 
