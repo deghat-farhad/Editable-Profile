@@ -26,10 +26,8 @@ import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
-import io.reactivex.schedulers.Schedulers
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -128,19 +126,40 @@ open class UpdateProfileViewModel @Inject constructor(
     }
 
     open fun setProfilePicture(profilePictureBitmap: Bitmap?, cacheDir: String) {
-        this.profilePicture.value = profilePictureBitmap
         profilePictureBitmap?.let{
-            saveBitmap(it, cacheDir)
+            this.profilePicture.value = saveBitmap(it, cacheDir)
         }
     }
 
-    private fun saveBitmap(profilePictureBitmap: Bitmap, cacheDir: String){
+    private fun saveBitmap(profilePictureBitmap: Bitmap, cacheDir: String): Bitmap{
+
+        val croppedBitmap = if (profilePictureBitmap.width >= profilePictureBitmap.height){
+
+            Bitmap.createBitmap(
+                profilePictureBitmap,
+                profilePictureBitmap.width /2 - profilePictureBitmap.height /2,
+                0,
+                profilePictureBitmap.height,
+                profilePictureBitmap.height
+            )
+
+        }else{
+
+            Bitmap.createBitmap(
+                profilePictureBitmap,
+                0,
+                profilePictureBitmap.height /2 - profilePictureBitmap.width /2,
+                profilePictureBitmap.width,
+                profilePictureBitmap.width
+            )
+        }
+        val output = Bitmap.createScaledBitmap(croppedBitmap, 512, 512, false)
         profilePictureFile = File(cacheDir, "tmp.jpg")
         profilePictureFile?.let {
             it.createNewFile()
 
             val bos = ByteArrayOutputStream()
-            profilePictureBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bos)
+            output.compress(Bitmap.CompressFormat.JPEG, 90, bos)
             val bitmapData = bos.toByteArray()
 
             val fos = FileOutputStream(profilePictureFile)
@@ -148,6 +167,7 @@ open class UpdateProfileViewModel @Inject constructor(
             fos.flush()
             fos.close()
         }
+        return output
     }
 
     open fun submit(

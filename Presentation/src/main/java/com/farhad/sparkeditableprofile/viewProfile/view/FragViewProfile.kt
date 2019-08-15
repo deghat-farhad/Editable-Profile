@@ -7,10 +7,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -41,6 +39,9 @@ class FragViewProfile : Fragment() {
     private lateinit var answerContainer: LinearLayout
     private lateinit var txtViwHeight: TextView
 
+    private lateinit var profileContainer: LinearLayout
+    private lateinit var progressBar: ProgressBar
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(
             R.layout.frag_view_profile,
@@ -53,6 +54,7 @@ class FragViewProfile : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         initiate(view)
+        showProgressBar()
 
         if (!::viewModelFactory.isInitialized) {
             injectThisToDagger()
@@ -76,10 +78,13 @@ class FragViewProfile : Fragment() {
         txtViwBirthday = view.findViewById(R.id.txtViwBirthday)
         answerContainer = view.findViewById(R.id.answerContainer)
         btnEditProfile = view.findViewById(R.id.btnEditProfile)
+        profileContainer = view.findViewById(R.id.profileContainer)
+        progressBar = view.findViewById(R.id.progressBar)
 
         btnEditProfile.setOnClickListener {
             viewModel.updateProfile()
         }
+        setToolbarTitle()
     }
 
     private fun injectThisToDagger() {
@@ -91,7 +96,10 @@ class FragViewProfile : Fragment() {
     }
 
     private fun setObservers() {
-        viewModel.displayName.observe(this, Observer { displayName -> txtViwDisplayName.text = displayName })
+        viewModel.displayName.observe(this, Observer {
+                displayName -> txtViwDisplayName.text = displayName
+            hideProgressBar()
+        })
         viewModel.location.observe(this, Observer { location -> txtViwLocation.text = location })
         viewModel.aboutMe.observe(this, Observer { aboutMe -> txtViwAboutMe.text = aboutMe })
         viewModel.birthday.observe(this, Observer { birthday -> txtViwBirthday.text = birthday })
@@ -110,6 +118,10 @@ class FragViewProfile : Fragment() {
 
             findNavController().navigate(action)
         })
+    }
+
+    private fun setToolbarTitle() {
+        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.profile)
     }
 
     private fun bitmapToRoundDrawable(bitmap: Bitmap): Drawable {
@@ -131,5 +143,14 @@ class FragViewProfile : Fragment() {
                 answerContainer.addView(answerLayout)
             }
         }
+    }
+
+    private fun showProgressBar() {
+        profileContainer.visibility = View.GONE
+        progressBar.visibility = View.VISIBLE
+    }
+    private fun hideProgressBar() {
+        profileContainer.visibility = View.VISIBLE
+        progressBar.visibility = View.GONE
     }
 }

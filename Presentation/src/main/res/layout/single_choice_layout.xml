@@ -14,6 +14,8 @@
             android:layout_height="wrap_content"
             style="@style/TextInputEditTextTheme"
             android:focusable="false"
-            android:longClickable="false"/>
+            android:longClickable="false"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"/>
 
 </com.google.android.material.textfield.TextInputLayout>

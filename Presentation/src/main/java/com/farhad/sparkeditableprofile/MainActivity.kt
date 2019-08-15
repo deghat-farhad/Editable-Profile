@@ -3,6 +3,7 @@ package com.farhad.sparkeditableprofile
 import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.navigation.fragment.NavHostFragment
 
 
@@ -15,6 +16,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         setNavigation()
+        setToolbar()
     }
 
     private fun setNavigation() {
@@ -35,5 +37,10 @@ class MainActivity : AppCompatActivity() {
             R.id.fragViewProfile
 
         navController.graph = graph
+    }
+
+    private fun setToolbar(){
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
     }
 }

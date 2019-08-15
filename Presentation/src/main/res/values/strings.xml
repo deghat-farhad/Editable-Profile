@@ -20,4 +20,5 @@
     <string name="height">167</string>
     <string name="religion">Religion</string>
     <string name="religiousValue">None</string>
+    <string name="submitting">submitting profile …</string>
 </resources>

@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -111,7 +112,7 @@ class FragUpdateProfile: Fragment() {
         txtInputEdtTxtBirthday.setOnClickListener { displayDatePicker() }
         btnAddProfilePic.setOnClickListener { pickImage() }
         btnSubmit.setOnClickListener { submit() }
-
+        setToolbarTitle()
     }
 
     private fun setObservers() {
@@ -156,6 +157,10 @@ class FragUpdateProfile: Fragment() {
                 singleChoiceTextInputs[question]?.setText(it[question])
             }
         })
+    }
+
+    private fun setToolbarTitle() {
+        (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.editProfile)
     }
 
     private fun navigateToViewProfile(){
@@ -272,6 +277,8 @@ class FragUpdateProfile: Fragment() {
     }
 
     private fun submit() {
+        btnSubmit.text = getString(R.string.submitting)
+        btnSubmit.isEnabled = false
         var height = -1
         txtInputEdtTxtHeight.text?.let {
             if (it.isNotEmpty())
