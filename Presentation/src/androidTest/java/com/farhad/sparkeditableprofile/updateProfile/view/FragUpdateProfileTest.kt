@@ -107,19 +107,21 @@ class FragUpdateProfileTest {
             singleChoiceAnswerInteraction
                 .perform(scrollTo())
                 .check(matches(isDisplayed()))
-                .perform(click())
+
             answersMap[key]?.let {
                 for (answer in it) {
+                    onView(withHint(key))
+                        .perform(click())
+
                     onView(withText(answer.name))
                         .perform(scrollTo())
                         .check(matches(isDisplayed()))
+                        .perform(click())
+
+                    onView(withText("OK")).perform(click())
+                    singleChoiceAnswerInteraction
+                        .check(matches(withText(answer.name)))
                 }
-                val selectIndex = Random.nextInt(it.size)
-                onView(withText(it[selectIndex].name))
-                    .perform(click())
-                onView(withText("OK")).perform(click())
-                singleChoiceAnswerInteraction
-                    .check(matches(withText(it[selectIndex].name)))
             }
         }
     }

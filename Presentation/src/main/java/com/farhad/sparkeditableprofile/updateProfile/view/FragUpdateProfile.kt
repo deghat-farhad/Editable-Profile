@@ -259,7 +259,7 @@ class FragUpdateProfile: Fragment(), Validator.ValidationListener {
         }
             .setTitle(title)
             .setPositiveButton(getString(R.string.btnOK)) { dialog, which ->
-                if(innerSelectedItem > 0)
+                if(innerSelectedItem >= 0)
                 singleChoiceTextInputs[title]?.setText(answers[innerSelectedItem])
             }
             .setNegativeButton(getString(R.string.btnCancel)) { dialog, which -> }
