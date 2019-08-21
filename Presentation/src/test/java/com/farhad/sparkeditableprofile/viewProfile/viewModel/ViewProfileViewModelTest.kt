@@ -1,6 +1,5 @@
 package com.farhad.sparkeditableprofile.viewProfile.viewModel
 
-import android.provider.ContactsContract
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.farhad.sparkeditableprofile.domain.model.Profile
 import com.farhad.sparkeditableprofile.domain.usecase.base.DefaultObserver
@@ -12,6 +11,7 @@ import com.farhad.sparkeditableprofile.testUtils.FakeProfile
 import com.farhad.sparkeditableprofile.testUtils.FakeSingleChoices
 import com.farhad.sparkeditableprofile.testUtils.RandomString
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -19,6 +19,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
+import java.util.*
 
 class ViewProfileViewModelTest {
 
@@ -36,7 +37,7 @@ class ViewProfileViewModelTest {
         MockitoAnnotations.initMocks(this)
     }
 
-    @Test(expected = ExceptionInInitializerError::class)
+    @Test
     fun getProfile() {
         val locationItems = FakeLocations().generateLocationItemList(100).toMutableList()
         val singleChoiceItems = FakeSingleChoices().generateFakeSingleChoiceAnswerItemListMap(10, 8)
@@ -44,6 +45,14 @@ class ViewProfileViewModelTest {
         val profile = fakeProfile.getProfile()
         val profileItem = fakeProfile.getProfileItem()
         val id = RandomString().get()
+        val monthsName = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+        val calendar = Calendar.getInstance()
+        calendar.time = profileItem.birthday
+
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val month = calendar.get(Calendar.MONTH)
+        val year = calendar.get(Calendar.YEAR)
+
 
         Mockito.`when`(profileItemMapper.mapToPresentation(any()))
             .thenReturn(profileItem)
@@ -52,9 +61,10 @@ class ViewProfileViewModelTest {
 
         viewProfileViewModel.getProfile(id)
 
-        val getProfileParamsCaptor:ArgumentCaptor<GetProfileParams> = ArgumentCaptor.forClass(GetProfileParams::class.java)
-        val getProfileObserverCaptor:ArgumentCaptor<DefaultObserver<Profile>>
-                = ArgumentCaptor.forClass(DefaultObserver::class.java) as ArgumentCaptor<DefaultObserver<Profile>>
+        val getProfileParamsCaptor: ArgumentCaptor<GetProfileParams> =
+            ArgumentCaptor.forClass(GetProfileParams::class.java)
+        val getProfileObserverCaptor: ArgumentCaptor<DefaultObserver<Profile>> =
+            ArgumentCaptor.forClass(DefaultObserver::class.java) as ArgumentCaptor<DefaultObserver<Profile>>
 
         Mockito.verify(getProfile).execute(capture(getProfileObserverCaptor), capture(getProfileParamsCaptor))
         getProfileObserverCaptor.value.onNext(profile)
@@ -62,9 +72,17 @@ class ViewProfileViewModelTest {
         assertEquals(id, getProfileParamsCaptor.value.userId)
         assertEquals(viewProfileViewModel.aboutMe.value, profileItem.aboutMe)
         assertEquals(viewProfileViewModel.displayName.value, profileItem.displayName)
-        assertEquals(viewProfileViewModel.birthday.value, profileItem.birthday)
-        assertEquals(viewProfileViewModel.height.value, profileItem.height)
+        assertEquals(viewProfileViewModel.birthday.value, "$day ${monthsName[month]} $year")
+        assertEquals(viewProfileViewModel.height.value, profileItem.height.toString())
         assertEquals(viewProfileViewModel.location.value, profileItem.location?.city)
+
+        for (question in profileItem.answers.keys) {
+            assertEquals(profileItem.answers.keys.size, viewProfileViewModel.answers.value?.keys?.size)
+            viewProfileViewModel.answers.value?.keys?.let {
+                assertTrue(it.indexOf(question) >= 0)
+                assertEquals(viewProfileViewModel.answers.value?.get(question), profileItem.answers[question]?.name)
+            }
+        }
     }
 
     private fun <T> any(): T {
