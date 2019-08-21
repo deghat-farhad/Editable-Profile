@@ -24,6 +24,7 @@ import com.farhad.sparkeditableprofile.mapper.SingleChoiceAnswerItemMapper
 import com.farhad.sparkeditableprofile.model.LocationItem
 import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
+import com.farhad.sparkeditableprofile.utils.CropImage
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 import io.reactivex.disposables.CompositeDisposable
@@ -46,7 +47,8 @@ open class UpdateProfileViewModel @Inject constructor(
     private val uploadProfilePicture: UploadProfilePicture,
     var profileItem: ProfileItem?,
     private val updateProfile: UpdateProfile,
-    private val profileItemDiff: ProfileItemDiff
+    private val profileItemDiff: ProfileItemDiff,
+    private val cropImage: CropImage
 ): ViewModel() {
     private val bag = CompositeDisposable()
     lateinit var questionLocations: List<LocationItem>
@@ -133,27 +135,7 @@ open class UpdateProfileViewModel @Inject constructor(
 
     private fun saveBitmap(profilePictureBitmap: Bitmap, cacheDir: String): Bitmap{
 
-        val croppedBitmap = if (profilePictureBitmap.width >= profilePictureBitmap.height){
-
-            Bitmap.createBitmap(
-                profilePictureBitmap,
-                profilePictureBitmap.width /2 - profilePictureBitmap.height /2,
-                0,
-                profilePictureBitmap.height,
-                profilePictureBitmap.height
-            )
-
-        }else{
-
-            Bitmap.createBitmap(
-                profilePictureBitmap,
-                0,
-                profilePictureBitmap.height /2 - profilePictureBitmap.width /2,
-                profilePictureBitmap.width,
-                profilePictureBitmap.width
-            )
-        }
-        val output = Bitmap.createScaledBitmap(croppedBitmap, 512, 512, false)
+        val output = cropImage.crop(profilePictureBitmap, 256, 256)
         profilePictureFile = File(cacheDir, "tmp.jpg")
         profilePictureFile?.let {
             it.createNewFile()

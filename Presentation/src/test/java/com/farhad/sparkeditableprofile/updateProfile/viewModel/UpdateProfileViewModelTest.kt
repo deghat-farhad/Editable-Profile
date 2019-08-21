@@ -1,10 +1,9 @@
 package com.farhad.sparkeditableprofile.updateProfile.viewModel
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.MutableLiveData
-import com.farhad.sparkeditableprofile.domain.model.*
+import com.farhad.sparkeditableprofile.domain.model.Location
+import com.farhad.sparkeditableprofile.domain.model.SingleChoiceAnswer
 import com.farhad.sparkeditableprofile.domain.usecase.base.DefaultObserver
 import com.farhad.sparkeditableprofile.domain.usecase.getLocations.GetLocations
 import com.farhad.sparkeditableprofile.domain.usecase.getSingleChoiceAnswers.GetSingleChoiceAnswers
@@ -22,24 +21,20 @@ import com.farhad.sparkeditableprofile.testUtils.FakeLocations
 import com.farhad.sparkeditableprofile.testUtils.FakeProfile
 import com.farhad.sparkeditableprofile.testUtils.FakeSingleChoices
 import com.farhad.sparkeditableprofile.testUtils.RandomString
-import junit.framework.Assert
+import com.farhad.sparkeditableprofile.utils.CropImage
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.mockito.*
 import org.mockito.ArgumentCaptor.forClass
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import kotlin.collections.HashMap
 import kotlin.random.Random
 import kotlin.random.nextInt
-
-
-
-
 
 
 class UpdateProfileViewModelTest {
@@ -70,8 +65,14 @@ class UpdateProfileViewModelTest {
     @Mock
     lateinit var updateProfile: UpdateProfile
 
+    @Mock
+    lateinit var cropImage:CropImage
+
     @get:Rule
     val rule = InstantTaskExecutorRule()
+
+    @get:Rule
+    var testFolder = TemporaryFolder()
 
     @Before
     fun setup() {
@@ -147,15 +148,18 @@ class UpdateProfileViewModelTest {
         assertEquals(updateProfileViewModel.birthday.value, "$day ${monthsName[month]} $year")
     }
 
-    @Test(expected = IOException::class)
+    @Test
     fun setProfilePictureTest(){
         val bmp = mock(Bitmap::class.java)
-        val path = "cacheDir"
+        Mockito.`when`(cropImage.crop(any(), anyInt(), anyInt())).thenReturn(bmp)
+        val path = testFolder.root.absolutePath
 
         val updateProfileViewModel = updateProfileViewModel(null)
 
         updateProfileViewModel.setProfilePicture(bmp, path)
 
+        val file = File("$path/tmp.jpg")
+        assertTrue(file.exists())
         assertEquals(updateProfileViewModel.profilePicture.value, bmp)
     }
 
@@ -323,7 +327,9 @@ class UpdateProfileViewModelTest {
         uploadProfilePicture,
         profileItem,
         updateProfile,
-        profileItemDiff
+        profileItemDiff,
+        cropImage
+
     )
 
     private fun <T> any(): T {
