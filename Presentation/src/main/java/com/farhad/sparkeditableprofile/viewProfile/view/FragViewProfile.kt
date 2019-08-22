@@ -91,6 +91,11 @@ class FragViewProfile : Fragment() {
         DaggerViewModelComponent
             .builder()
             .profileItem(null)
+            .notAValidCity()
+            .emptyFieldMessage()
+            .youngerThanMessage()
+            .tooLongMessage()
+            .charactersNotAllowedMessage()
             .build()
             .injectFragment(this)
     }

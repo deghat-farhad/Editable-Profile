@@ -32,18 +32,14 @@ import com.farhad.sparkeditableprofile.updateProfile.viewModel.UpdateProfileView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.mobsandgeeks.saripaar.ValidationError
-import com.mobsandgeeks.saripaar.annotation.Length
-import com.mobsandgeeks.saripaar.annotation.NotEmpty
-import com.mobsandgeeks.saripaar.annotation.Pattern
 import java.util.*
 import javax.inject.Inject
-import com.mobsandgeeks.saripaar.Validator
 import kotlin.collections.HashMap
 import kotlin.math.min
 
 const val PICK_IMAGE = 1
-class FragUpdateProfile: Fragment(), Validator.ValidationListener {
+
+class FragUpdateProfile : Fragment() {
 
     val args: FragUpdateProfileArgs by navArgs()
 
@@ -58,33 +54,14 @@ class FragUpdateProfile: Fragment(), Validator.ValidationListener {
     private lateinit var imgViewEditProfilePic: ImageView
     private lateinit var btnAddProfilePic: ImageButton
     private lateinit var btnSubmit: Button
-    private lateinit var listViewsWithFailedValidation: MutableList<View>
-    private lateinit var validator: Validator
     private var isUpdateView = false
 
-    @NotEmpty(trim = true, messageResId = R.string.emptyIsNotAllowed)
     private lateinit var txtInputEdtTxtBirthday: TextInputEditText
 
-    @NotEmpty(trim = true, messageResId = R.string.emptyIsNotAllowed)
-    @Pattern(regex = "^|[A-Za-z0-9._\\-\\s]+", messageResId = R.string.charactersNotAllowed)
-    @Length(max = 256, messageResId = R.string.tooLongError)
     private lateinit var txtInputEdtTxtDisplayName: TextInputEditText
-
-    @Pattern(regex = "^|[A-Za-z0-9!?()@#\$&()'.,_\\-\\s]+", messageResId = R.string.charactersNotAllowed)
-    @Length(max = 5000, messageResId = R.string.tooLongError)
     private lateinit var txtInputEdtTxtAboutMe: TextInputEditText
-
-    @NotEmpty(trim = true, messageResId = R.string.emptyIsNotAllowed)
-    @Pattern(regex = "^|[A-Za-z\\s]+", messageResId = R.string.charactersNotAllowed)
-    @Length(max = 256, messageResId = R.string.tooLongError)
     private lateinit var txtInputEdtTxtRealName: TextInputEditText
-
-    @Pattern(regex = "^|[A-Za-z0-9!?()@#\$&()'.,_\\-\\s]+", messageResId = R.string.charactersNotAllowed)
-    @Length(max = 256, messageResId = R.string.tooLongError)
     private lateinit var txtInputEdtTxtOccupation: TextInputEditText
-
-    @NotEmpty(trim = true, messageResId = R.string.emptyIsNotAllowed)
-    @Length(max = 3, messageResId = R.string.tooLongError)
     private lateinit var txtInputEdtTxtHeight: TextInputEditText
 
 
@@ -119,13 +96,16 @@ class FragUpdateProfile: Fragment(), Validator.ValidationListener {
         DaggerViewModelComponent
             .builder()
             .profileItem(profile)
+            .notAValidCity(getString(R.string.invalidLocation))
+            .emptyFieldMessage(getString(R.string.emptyIsNotAllowed))
+            .youngerThanMessage(getString(R.string.youngerThan18))
+            .tooLongMessage(getString(R.string.tooLongError))
+            .charactersNotAllowedMessage(getString(R.string.charactersNotAllowed))
             .build()
             .injectFragment(this)
     }
 
     private fun initViews(fragContainer: View) {
-        validator = Validator(this)
-        validator.setValidationListener(this)
         singleChoiceItemsContainer = fragContainer.findViewById(R.id.singleChoiceItemsContainer)
         autoCompleteTxtViewLocation =
             fragContainer.findViewById(R.id.autoCompleteTxtViewLocation) as AutoCompleteTextView
@@ -142,11 +122,7 @@ class FragUpdateProfile: Fragment(), Validator.ValidationListener {
 
         txtInputEdtTxtBirthday.setOnClickListener { displayDatePicker() }
         btnAddProfilePic.setOnClickListener { pickImage() }
-        btnSubmit.setOnClickListener {
-            if (::listViewsWithFailedValidation.isInitialized && listViewsWithFailedValidation.size > 0)
-                resetAllErrors()
-            validator.validate()
-        }
+        btnSubmit.setOnClickListener { submit() }
         setToolbarTitle()
 
         if (isUpdateView) {
@@ -197,6 +173,39 @@ class FragUpdateProfile: Fragment(), Validator.ValidationListener {
                 singleChoiceTextInputs[question]?.setText(it[question])
             }
         })
+
+        viewModel.registerIsInProgress.observe(this, Observer {
+            disableRegisterButton()
+        })
+
+        viewModel.birthDayValidation.observe(this, Observer {
+            showValidationIssue(txtInputEdtTxtBirthday, it)
+        })
+
+        viewModel.displayNameValidation.observe(this, Observer {
+            showValidationIssue(txtInputEdtTxtDisplayName, it)
+        })
+
+        viewModel.realNameValidation.observe(this, Observer {
+            showValidationIssue(txtInputEdtTxtRealName, it)
+        })
+
+        viewModel.aboutMeValidation.observe(this, Observer {
+            showValidationIssue(txtInputEdtTxtAboutMe, it)
+        })
+
+        viewModel.occupationValidation.observe(this, Observer {
+            showValidationIssue(txtInputEdtTxtOccupation, it)
+        })
+
+        viewModel.heightValidation.observe(this, Observer {
+            showValidationIssue(txtInputEdtTxtHeight, it)
+        })
+
+        viewModel.locationValidation.observe(this, Observer {
+            showValidationIssue(autoCompleteTxtViewLocation, it)
+        })
+
     }
 
     private fun setToolbarTitle() {
@@ -282,6 +291,7 @@ class FragUpdateProfile: Fragment(), Validator.ValidationListener {
                 currentMonth,
                 currentDay
             )
+            picker.datePicker.maxDate = System.currentTimeMillis()
             picker.show()
         }
     }
@@ -317,9 +327,12 @@ class FragUpdateProfile: Fragment(), Validator.ValidationListener {
         return imageDrawable
     }
 
-    private fun submit() {
+    private fun disableRegisterButton() {
         btnSubmit.text = getString(R.string.submitting)
         btnSubmit.isEnabled = false
+    }
+
+    private fun submit() {
         var height = -1
         txtInputEdtTxtHeight.text?.let {
             if (it.isNotEmpty())
@@ -340,27 +353,13 @@ class FragUpdateProfile: Fragment(), Validator.ValidationListener {
         viewModel.submit(displayName, realName, occupation, aboutMe, city, height, answers)
     }
 
-    override fun onValidationSucceeded() {
-        submit()
-    }
-
-    override fun onValidationFailed(errors: MutableList<ValidationError>?) {
-        listViewsWithFailedValidation = mutableListOf()
-        for (error in errors!!) {
-            val view = error.view
-            val viewParent = view.parent.parent
-            if (viewParent is TextInputLayout) {
-                listViewsWithFailedValidation.add(viewParent)
-                val message = error.getCollatedErrorMessage(context)
+    private fun showValidationIssue(view: View, message: String) {
+        val viewParent = view.parent.parent
+        if (viewParent is TextInputLayout) {
+            if (message.isEmpty())
+                viewParent.error = null
+            else
                 viewParent.error = message
-            }
-        }
-    }
-
-    private fun resetAllErrors() {
-        for (view in listViewsWithFailedValidation) {
-            if (view is TextInputLayout)
-                view.error = null
         }
     }
 }

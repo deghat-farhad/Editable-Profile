@@ -91,7 +91,4 @@ dependencies {
     //Navigation
     implementation "androidx.navigation:navigation-fragment-ktx:$rootProject.navigation_Version"
     implementation "androidx.navigation:navigation-ui-ktx:$rootProject.navigation_Version"
-
-    //validation
-    compile "com.mobsandgeeks:android-saripaar:$saripaar_version"
 }

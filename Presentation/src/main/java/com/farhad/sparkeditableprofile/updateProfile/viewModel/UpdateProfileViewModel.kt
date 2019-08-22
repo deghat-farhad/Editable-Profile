@@ -24,6 +24,10 @@ import com.farhad.sparkeditableprofile.mapper.SingleChoiceAnswerItemMapper
 import com.farhad.sparkeditableprofile.model.LocationItem
 import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.model.SingleChoiceAnswerItem
+import com.farhad.sparkeditableprofile.updateProfile.viewModel.validator.DateValidator
+import com.farhad.sparkeditableprofile.updateProfile.viewModel.validator.LocationValidator
+import com.farhad.sparkeditableprofile.updateProfile.viewModel.validator.TextValidator
+import com.farhad.sparkeditableprofile.updateProfile.viewModel.validator.ValidationException
 import com.farhad.sparkeditableprofile.utils.CropImage
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
@@ -37,6 +41,7 @@ import java.util.*
 import javax.inject.Inject
 import kotlin.random.Random
 
+const val MINIMUM_AGE = 18
 open class UpdateProfileViewModel @Inject constructor(
     private val singleChoiceAnswerItemMapper: SingleChoiceAnswerItemMapper,
     private val locationItemMapper: LocationItemMapper,
@@ -48,7 +53,10 @@ open class UpdateProfileViewModel @Inject constructor(
     var profileItem: ProfileItem?,
     private val updateProfile: UpdateProfile,
     private val profileItemDiff: ProfileItemDiff,
-    private val cropImage: CropImage
+    private val cropImage: CropImage,
+    private val textValidator: TextValidator,
+    private val dateValidator: DateValidator,
+    private val locationValidator: LocationValidator
 ): ViewModel() {
     private val bag = CompositeDisposable()
     lateinit var questionLocations: List<LocationItem>
@@ -64,6 +72,7 @@ open class UpdateProfileViewModel @Inject constructor(
     open val profilePicture: MutableLiveData<Bitmap> by lazy { MutableLiveData<Bitmap>() }
     open val profileRegistered: SingleLiveEvent<String> by lazy { SingleLiveEvent<String>() }
     open val profileUpdated: SingleLiveEvent<Unit> by lazy { SingleLiveEvent<Unit>() }
+    open val registerIsInProgress: SingleLiveEvent<Unit> by lazy { SingleLiveEvent<Unit>() }
 
     open val displayName: MutableLiveData<String> by lazy { MutableLiveData<String>() }
     open val realName: MutableLiveData<String> by lazy { MutableLiveData<String>() }
@@ -72,6 +81,14 @@ open class UpdateProfileViewModel @Inject constructor(
     open val aboutMe: MutableLiveData<String> by lazy { MutableLiveData<String>() }
     open val location: MutableLiveData<String> by lazy { MutableLiveData<String>() }
     open val answers: MutableLiveData<HashMap<String, String>> by lazy { MutableLiveData<HashMap<String, String>>() }
+
+    open val birthDayValidation: SingleLiveEvent<String> by lazy { SingleLiveEvent<String>() }
+    open val displayNameValidation: SingleLiveEvent<String> by lazy { SingleLiveEvent<String>() }
+    open val realNameValidation: SingleLiveEvent<String> by lazy { SingleLiveEvent<String>() }
+    open val aboutMeValidation: SingleLiveEvent<String> by lazy { SingleLiveEvent<String>() }
+    open val occupationValidation: SingleLiveEvent<String> by lazy { SingleLiveEvent<String>() }
+    open val heightValidation: SingleLiveEvent<String> by lazy { SingleLiveEvent<String>() }
+    open val locationValidation: SingleLiveEvent<String> by lazy { SingleLiveEvent<String>() }
 
 
     init {
@@ -119,8 +136,10 @@ open class UpdateProfileViewModel @Inject constructor(
         val calendar = Calendar.getInstance()
         calendar.set(year, monthOfYear, dayOfMonth)
         newBirthDay = calendar.time
+
         birthday.value = formatDate(calendar.time)
     }
+
 
     private fun formatDate(date: Date?): String {
         val formatter = SimpleDateFormat("d MMM yyyy", Locale.US)
@@ -188,23 +207,27 @@ open class UpdateProfileViewModel @Inject constructor(
         profileItem.answers = newAnswers
         profileItem.birthday = newBirthDay
 
-        //there is no profile so we`re going to register one.
-        if (this.profileItem == null)
-            registerProfile(profileItem)
+        if (validateProfileItem(profileItem)) {
 
-        //a profile exist so we try to update current profile if tehre is any changes
-        this.profileItem?.let{
-            if (profileItem != it) {
-                updateProfile(it, profileItem)
-            }
-            profilePictureFile?.let {file ->
-                uploadPicture(it, file)
+            //there is no profile so we`re going to register one.
+            if (this.profileItem == null)
+                registerProfile(profileItem)
+
+            //a profile exist so we try to update current profile if tehre is any changes
+            this.profileItem?.let {
+                if (profileItem != it) {
+                    updateProfile(it, profileItem)
+                }
+                profilePictureFile?.let { file ->
+                    uploadPicture(it, file)
+                }
             }
         }
     }
 
     private fun registerProfile(profileItem: ProfileItem) {
 
+        registerIsInProgress.call()
         val updateProfileObserver = object : DefaultObserver<RequestStatus>() {
             override fun onNext(it: RequestStatus) {
                 super.onNext(it)
@@ -234,6 +257,67 @@ open class UpdateProfileViewModel @Inject constructor(
 
         val params = UpdateProfileParams(profileItemMapper.mapToDomain(diffProfile))
         updateProfile.execute(updateProfileObserver, params)
+    }
+
+    private fun validateProfileItem(profileItem: ProfileItem): Boolean {
+        var isValidate = true
+        try {
+            textValidator.validate(profileItem.displayName ?: "", 256, false, Regex("^|[A-Za-z0-9._\\-\\s]+"))
+            displayNameValidation.value = ""
+        } catch (e: ValidationException) {
+            displayNameValidation.value = e.message
+            isValidate = false
+        }
+
+        try {
+            textValidator.validate(profileItem.realName ?: "", 256, false, Regex("^|[A-Za-z0-9._\\-\\s]+"))
+            realNameValidation.value = ""
+        } catch (e: ValidationException) {
+            realNameValidation.value = e.message
+            isValidate = false
+        }
+
+        try {
+            textValidator.validate(profileItem.aboutMe ?: "", 5000, true, Regex("^|[A-Za-z0-9!?()@#\$&'.,_\\-\\s]+"))
+            aboutMeValidation.value = ""
+        } catch (e: ValidationException) {
+            aboutMeValidation.value = e.message
+            isValidate = false
+        }
+
+        try {
+            textValidator.validate(profileItem.occupation ?: "", 256, true, Regex("^|[A-Za-z0-9!?()@#\$&'.,_\\-\\s]+"))
+            occupationValidation.value = ""
+        } catch (e: ValidationException) {
+            occupationValidation.value = e.message
+            isValidate = false
+        }
+
+        try {
+            val heightString = if (profileItem.height != -1) profileItem.height.toString() else ""
+            textValidator.validate(heightString, 3, false, Regex("^|[0-9]+"))
+            heightValidation.value = ""
+        } catch (e: ValidationException) {
+            heightValidation.value = e.message
+            isValidate = false
+        }
+
+        try {
+            dateValidator.confirmIsOlderThan(profileItem.birthday, MINIMUM_AGE)
+            birthDayValidation.value = ""
+        } catch (e: ValidationException) {
+            birthDayValidation.value = e.message
+            isValidate = false
+        }
+
+        try {
+            locationValidator.validate(profileItem.location)
+            locationValidation.value = ""
+        } catch (e: ValidationException) {
+            locationValidation.value = e.message
+            isValidate = false
+        }
+        return isValidate
     }
 
     private fun randomId(): String {

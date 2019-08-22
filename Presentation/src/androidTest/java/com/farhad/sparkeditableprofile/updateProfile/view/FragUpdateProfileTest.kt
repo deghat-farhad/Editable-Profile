@@ -9,6 +9,7 @@ import android.widget.ImageView
 import androidx.lifecycle.MutableLiveData
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.PickerActions
 import androidx.test.espresso.matcher.BoundedMatcher
@@ -16,7 +17,6 @@ import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import com.farhad.editableprofile.utils.SingleLiveEvent
 import com.farhad.sparkeditableprofile.R
@@ -56,10 +56,20 @@ class FragUpdateProfileTest {
     private val height: MutableLiveData<String> = MutableLiveData<String>()
     private val aboutMe: MutableLiveData<String> = MutableLiveData<String>()
     private val location: MutableLiveData<String> = MutableLiveData<String>()
-    private val answers: MutableLiveData<java.util.HashMap<String, String>> = MutableLiveData<java.util.HashMap<String, String>>()
+    private val answers: MutableLiveData<java.util.HashMap<String, String>> =
+        MutableLiveData<java.util.HashMap<String, String>>()
 
     private val profileRegistered: SingleLiveEvent<String> = SingleLiveEvent<String>()
     private val profileUpdated: SingleLiveEvent<Unit> = SingleLiveEvent<Unit>()
+    private val registerIsInProgress: SingleLiveEvent<Unit> = SingleLiveEvent<Unit>()
+
+    private val birthDayValidation: SingleLiveEvent<String> = SingleLiveEvent<String>()
+    private val displayNameValidation: SingleLiveEvent<String> = SingleLiveEvent<String>()
+    private val realNameValidation: SingleLiveEvent<String> = SingleLiveEvent<String>()
+    private val aboutMeValidation: SingleLiveEvent<String> = SingleLiveEvent<String>()
+    private val occupationValidation: SingleLiveEvent<String> = SingleLiveEvent<String>()
+    private val heightValidation: SingleLiveEvent<String> = SingleLiveEvent<String>()
+    private val locationValidation: SingleLiveEvent<String> = SingleLiveEvent<String>()
 
 
     @Mock
@@ -89,8 +99,18 @@ class FragUpdateProfileTest {
         Mockito.`when`(updateProfileViewModel.location).thenReturn(location)
         Mockito.`when`(updateProfileViewModel.aboutMe).thenReturn(aboutMe)
         Mockito.`when`(updateProfileViewModel.answers).thenReturn(answers)
+
         Mockito.`when`(updateProfileViewModel.profileRegistered).thenReturn(profileRegistered)
         Mockito.`when`(updateProfileViewModel.profileUpdated).thenReturn(profileUpdated)
+        Mockito.`when`(updateProfileViewModel.registerIsInProgress).thenReturn(registerIsInProgress)
+
+        Mockito.`when`(updateProfileViewModel.displayNameValidation).thenReturn(displayNameValidation)
+        Mockito.`when`(updateProfileViewModel.realNameValidation).thenReturn(realNameValidation)
+        Mockito.`when`(updateProfileViewModel.aboutMeValidation).thenReturn(aboutMeValidation)
+        Mockito.`when`(updateProfileViewModel.birthDayValidation).thenReturn(birthDayValidation)
+        Mockito.`when`(updateProfileViewModel.heightValidation).thenReturn(heightValidation)
+        Mockito.`when`(updateProfileViewModel.locationValidation).thenReturn(locationValidation)
+        Mockito.`when`(updateProfileViewModel.occupationValidation).thenReturn(occupationValidation)
     }
 
     @Test
@@ -158,7 +178,7 @@ class FragUpdateProfileTest {
     }
 
     @Test
-    fun setBirthdayEditTextsTextTest(){
+    fun setBirthdayEditTextsTextTest() {
         val birthday = RandomString().get()
         runOnUiThread {
             liveBirthday.value = birthday
@@ -168,11 +188,12 @@ class FragUpdateProfileTest {
     }
 
     @Test
-    fun setProfilePictureTest(){
+    fun setProfilePictureTest() {
         onView(withId(R.id.imgViewEditProfilePic)).check(matches(hasDrawable()))
         onView(withId(R.id.imgViewEditProfilePic)).check(matches(DrawableMatcher(R.drawable.ic_profile)))
 
-        val profilePicture = BitmapFactory.decodeResource (testActivityRule.activity.resources, android.R.drawable.ic_dialog_alert)
+        val profilePicture =
+            BitmapFactory.decodeResource(testActivityRule.activity.resources, android.R.drawable.ic_dialog_alert)
         runOnUiThread {
             liveProfilePicture.value = profilePicture
         }
@@ -248,6 +269,14 @@ class FragUpdateProfileTest {
             }
         }
 
+        val birthDayValidationMessage = RandomString().get()
+        val displayNameValidationMessage = RandomString().get()
+        val realNameValidationMessage = RandomString().get()
+        val aboutMeValidationMessage = RandomString().get()
+        val occupationValidationMessage = RandomString().get()
+        val heightValidationMessage = RandomString().get()
+        val locationValidationMessage = RandomString().get()
+
         runOnUiThread {
             this.liveSingleChoiceAnswersMap.value = answersMap
             this.displayName.value = displayName
@@ -257,6 +286,16 @@ class FragUpdateProfileTest {
             this.realName.value = realName
             this.occupation.value = occupation
             this.answers.value = answers
+
+            this.birthDayValidation.value = birthDayValidationMessage
+            this.displayNameValidation.value = displayNameValidationMessage
+            this.realNameValidation.value = realNameValidationMessage
+            this.aboutMeValidation.value = aboutMeValidationMessage
+            this.occupationValidation.value = occupationValidationMessage
+            this.heightValidation.value = heightValidationMessage
+            this.locationValidation.value = locationValidationMessage
+
+            this.registerIsInProgress.call()
         }
 
         onView(withId(R.id.txtInputEdtTxtDisplayName)).check(matches(withText(displayName)))
@@ -265,6 +304,34 @@ class FragUpdateProfileTest {
         onView(withId(R.id.autoCompleteTxtViewLocation)).check(matches(withText(location)))
         onView(withId(R.id.txtInputEdtTxtRealName)).check(matches(withText(realName)))
         onView(withId(R.id.txtInputEdtTxtOccupation)).check(matches(withText(occupation)))
+
+        onView(withText(birthDayValidationMessage)).perform(scrollTo()).check(matches(isDisplayed()))
+        onView(withText(displayNameValidationMessage)).perform(scrollTo()).check(matches(isDisplayed()))
+        onView(withText(realNameValidationMessage)).perform(scrollTo()).check(matches(isDisplayed()))
+        onView(withText(aboutMeValidationMessage)).perform(scrollTo()).check(matches(isDisplayed()))
+        onView(withText(occupationValidationMessage)).perform(scrollTo()).check(matches(isDisplayed()))
+        onView(withText(heightValidationMessage)).perform(scrollTo()).check(matches(isDisplayed()))
+        onView(withText(locationValidationMessage)).perform(scrollTo()).check(matches(isDisplayed()))
+
+        onView(withId(R.id.btnSubmit)).check(matches(not(isEnabled())))
+
+        runOnUiThread {
+            this.birthDayValidation.value = ""
+            this.displayNameValidation.value = ""
+            this.realNameValidation.value = ""
+            this.aboutMeValidation.value = ""
+            this.occupationValidation.value = ""
+            this.heightValidation.value = ""
+            this.locationValidation.value = ""
+        }
+
+        onView(withText(birthDayValidationMessage)).check(doesNotExist())
+        onView(withText(displayNameValidationMessage)).check(doesNotExist())
+        onView(withText(realNameValidationMessage)).check(doesNotExist())
+        onView(withText(aboutMeValidationMessage)).check(doesNotExist())
+        onView(withText(occupationValidationMessage)).check(doesNotExist())
+        onView(withText(heightValidationMessage)).check(doesNotExist())
+        onView(withText(locationValidationMessage)).check(doesNotExist())
 
         for (key in answersMap.keys) {
             onView(withHint(key))

@@ -16,22 +16,30 @@ import com.farhad.sparkeditableprofile.domain.usecase.uploadProfilePicture.Uploa
 import com.farhad.sparkeditableprofile.mapper.LocationItemMapper
 import com.farhad.sparkeditableprofile.mapper.ProfileItemMapper
 import com.farhad.sparkeditableprofile.mapper.SingleChoiceAnswerItemMapper
+import com.farhad.sparkeditableprofile.model.LocationItem
 import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.testUtils.FakeLocations
 import com.farhad.sparkeditableprofile.testUtils.FakeProfile
 import com.farhad.sparkeditableprofile.testUtils.FakeSingleChoices
 import com.farhad.sparkeditableprofile.testUtils.RandomString
+import com.farhad.sparkeditableprofile.updateProfile.viewModel.validator.DateValidator
+import com.farhad.sparkeditableprofile.updateProfile.viewModel.validator.LocationValidator
+import com.farhad.sparkeditableprofile.updateProfile.viewModel.validator.TextValidator
+import com.farhad.sparkeditableprofile.updateProfile.viewModel.validator.ValidationException
 import com.farhad.sparkeditableprofile.utils.CropImage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExpectedException
 import org.junit.rules.TemporaryFolder
-import org.mockito.*
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentCaptor.forClass
-import org.mockito.Mockito.anyInt
-import org.mockito.Mockito.mock
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.Mockito.*
+import org.mockito.MockitoAnnotations
 import java.io.File
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -67,6 +75,19 @@ class UpdateProfileViewModelTest {
 
     @Mock
     lateinit var cropImage:CropImage
+
+    @Mock
+    lateinit var textValidator: TextValidator
+
+    @Mock
+    lateinit var dateValidator: DateValidator
+
+    @Mock
+    lateinit var locationValidator: LocationValidator
+
+    @get:Rule
+    val expected = ExpectedException.none()
+
 
     @get:Rule
     val rule = InstantTaskExecutorRule()
@@ -213,6 +234,66 @@ class UpdateProfileViewModelTest {
             assertEquals(profile.answers[question]?.id, captor.value.profile.answers[question]?.id)
             assertEquals(profile.answers[question]?.name, captor.value.profile.answers[question]?.name)
         }
+
+        assertEquals("", updateProfileViewModel.occupationValidation.value)
+        assertEquals("", updateProfileViewModel.locationValidation.value)
+        assertEquals("", updateProfileViewModel.heightValidation.value)
+        assertEquals("", updateProfileViewModel.aboutMeValidation.value)
+        assertEquals("", updateProfileViewModel.realNameValidation.value)
+        assertEquals("", updateProfileViewModel.birthDayValidation.value)
+        assertEquals("", updateProfileViewModel.displayNameValidation.value)
+    }
+
+    @Test
+    fun isItValidate() {
+        val locationItems = FakeLocations().generateLocationItemList(100).toMutableList()
+        val singleChoiceItems = FakeSingleChoices().generateFakeSingleChoiceAnswerItemListMap(10, 8)
+        val profile = FakeProfile(locationItems, singleChoiceItems).getProfile()
+
+        val answers = HashMap<String, String>()
+        for (question in profile.answers.keys) {
+            profile.answers[question]?.let {
+                answers[question] = it.name!!
+            }
+        }
+
+        val exceptionMessage = RandomString().get()
+
+        Mockito.`when`(profileItemMapper.mapToDomain(any()))
+            .thenReturn(profile)
+
+        Mockito.`when`(locationValidator.validate(any<LocationItem>())).thenThrow(ValidationException(exceptionMessage))
+        Mockito.`when`(textValidator.validate(anyString(), anyInt(), anyBoolean(), any()))
+            .thenThrow(ValidationException(exceptionMessage))
+        Mockito.`when`(dateValidator.confirmIsOlderThan(any(), anyInt()))
+            .thenThrow(ValidationException(exceptionMessage))
+
+        val updateProfileViewModel = updateProfileViewModel(null)
+
+        updateProfileViewModel.newBirthDay = profile.birthday
+        updateProfileViewModel.questionLocations = locationItems
+        updateProfileViewModel.questionSingleChoices.value = singleChoiceItems
+        updateProfileViewModel.questionLocationsStrings.value = locationItems.map { it.city }
+
+        updateProfileViewModel.submit(
+            profile.displayName.toString(),
+            profile.realName.toString(),
+            profile.occupation.toString(),
+            profile.aboutMe.toString(),
+            profile.location?.city.toString(),
+            profile.height!!,
+            answers
+        )
+
+        verifyZeroInteractions(registerProfile)
+
+        assertEquals(exceptionMessage, updateProfileViewModel.occupationValidation.value)
+        assertEquals(exceptionMessage, updateProfileViewModel.locationValidation.value)
+        assertEquals(exceptionMessage, updateProfileViewModel.heightValidation.value)
+        assertEquals(exceptionMessage, updateProfileViewModel.aboutMeValidation.value)
+        assertEquals(exceptionMessage, updateProfileViewModel.realNameValidation.value)
+        assertEquals(exceptionMessage, updateProfileViewModel.birthDayValidation.value)
+        assertEquals(exceptionMessage, updateProfileViewModel.displayNameValidation.value)
     }
 
     @Test
@@ -328,8 +409,10 @@ class UpdateProfileViewModelTest {
         profileItem,
         updateProfile,
         profileItemDiff,
-        cropImage
-
+        cropImage,
+        textValidator,
+        dateValidator,
+        locationValidator
     )
 
     private fun <T> any(): T {

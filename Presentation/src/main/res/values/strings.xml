@@ -24,4 +24,6 @@
     <string name="emptyIsNotAllowed">This is a required field</string>
     <string name="charactersNotAllowed">Some characters are not allowed</string>
     <string name="tooLongError">It\'s too long</string>
+    <string name="youngerThan18">you must be at least %d years old</string>
+    <string name="invalidLocation">This field must be a valid city name</string>
 </resources>
