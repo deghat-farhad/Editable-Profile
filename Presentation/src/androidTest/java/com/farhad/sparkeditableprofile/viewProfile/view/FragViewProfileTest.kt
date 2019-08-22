@@ -19,8 +19,10 @@ import com.farhad.sparkeditableprofile.di.ViewModelFactory
 import com.farhad.sparkeditableprofile.model.ProfileItem
 import com.farhad.sparkeditableprofile.testUtils.ActFragTest
 import com.farhad.sparkeditableprofile.testUtils.RandomString
+import com.farhad.sparkeditableprofile.updateProfile.view.DrawableMatcher
 import com.farhad.sparkeditableprofile.viewProfile.viewModel.ViewProfileViewModel
 import org.hamcrest.CoreMatchers.not
+import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -89,14 +91,12 @@ class FragViewProfileTest {
             answers[RandomString().get()] = RandomString().get()
         }
 
-        onView(withId(R.id.imgViwProfile)).check(matches(not(hasDrawable())))
         runOnUiThread {
             this.displayName.value = displayName
             this.birthday.value = birthday
             this.height.value = height
             this.aboutMe.value = aboutMe
             this.location.value = location
-            this.profilePicture.value = bmp
             this.answers.value = answers
         }
         onView(withId(R.id.txtViwDisplayName)).check(matches(withText(displayName)))
@@ -104,10 +104,18 @@ class FragViewProfileTest {
         onView(withId(R.id.txtViwHeight)).check(matches(withText(height)))
         onView(withId(R.id.txtViwAboutMe)).check(matches(withText(aboutMe)))
         onView(withId(R.id.txtViwLocation)).check(matches(withText(location)))
-        onView(withId(R.id.imgViwProfile)).check(matches(hasDrawable()))
         for (question in answers.keys) {
             onView(withText(question)).check(matches(hasSibling(withText(answers[question]))))
         }
+
+        onView(withId(R.id.imgViwProfile)).check(matches(hasDrawable()))
+        onView(withId(R.id.imgViwProfile)).check(matches(DrawableMatcher(R.drawable.ic_profile)))
+
+        runOnUiThread {
+            this.profilePicture.value = bmp
+        }
+        onView(withId(R.id.imgViwProfile)).check(matches(hasDrawable()))
+        onView(withId(R.id.imgViwProfile)).check(matches(Matchers.not(DrawableMatcher(R.drawable.ic_profile))))
     }
 
     private fun hasDrawable(): BoundedMatcher<View, ImageView> {
